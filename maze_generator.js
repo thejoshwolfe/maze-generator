@@ -22,12 +22,54 @@ function MazeGenerator(x, y, initiallyFilled) {
     this.verticalWalls.push(pole);
   }
 };
+
+MazeGenerator.prototype.getWallCount = function() {
+  return this.sizeX * (this.sizeY - 1) + (this.sizeX - 1) * this.sizeY;
+};
+MazeGenerator.prototype.wallToScalar = function(wallsArray, i, j) {
+  if (wallsArray === this.horizontalWalls) {
+    // horizontalWalls
+    return i * (this.sizeY - 1) + j;
+  } else {
+    // verticalWalls
+    var horizontalWallsSize = this.sizeX * (this.sizeY - 1);
+    return horizontalWallsSize + i * this.sizeY + j;
+  }
+};
+MazeGenerator.prototype.scalarToWall = function(scalar) {
+  var result = {};
+  var horizontalWallsSize = this.sizeX * (this.sizeY - 1);
+  if (scalar < horizontalWallsSize) {
+    result.wallsArray = this.horizontalWalls;
+    result.i = Math.floor(scalar / (this.sizeY - 1));
+    result.j = scalar % (this.sizeY - 1);
+  } else {
+    scalar -= horizontalWallsSize;
+    result.wallsArray = this.verticalWalls;
+    result.i = Math.floor(scalar / this.sizeY);
+    result.j = scalar % this.sizeY;
+  }
+  return result;
+};
+
+MazeGenerator.prototype.getRoomCount = function() {
+  return this.sizeX * this.sizeY;
+};
+MazeGenerator.prototype.roomToScalar = function(x, y) {
+  return this.sizeY * x + y;
+};
+MazeGenerator.prototype.scalarToRoom = function(scalar) {
+  var x = Math.floor(scalar / this.sizeY);
+  var y = scalar % this.sizeY;
+  return {x:x, y:y};
+};
+
 MazeGenerator.prototype.render = function(canvas) {
   var context = canvas.getContext("2d");
   var cellSize = this.cellSize;
   var cellSizeHalf = this.cellSizeHalf;
   context.fillStyle = "#ffffff";
-  context.fillRect(0, 0, 100, 100);
+  context.fillRect(0, 0, canvas.width, canvas.height);
   context.strokeStyle = "#000000";
   // horizontalWalls
   for (var i = 0; i < this.sizeX; i++) {
@@ -56,16 +98,3 @@ MazeGenerator.prototype.render = function(canvas) {
     }
   }
 };
-
-function inherits(ctor, superCtor) {
-  // copied from nodejs's util.js
-  ctor.super_ = superCtor;
-  ctor.prototype = Object.create(superCtor.prototype, {
-    constructor: {
-      value: ctor,
-      enumerable: false,
-      writable: true,
-      configurable: true
-    }
-  });
-}
