@@ -17,7 +17,7 @@ Since there is only one path between any two points, it doesn't really matter wh
 
 ## The Algorithms
 
-See Wikipedia's page on <a href="http://en.wikipedia.org/wiki/Maze_generation_algorithm">maze generator algorithms</a>.
+See Wikipedia's page on [maze generator algorithms](http://en.wikipedia.org/wiki/Maze_generation_algorithm).
 
 ### Kruskal
 
@@ -28,4 +28,4 @@ Since we consider every wall, all rooms will eventually become accessible.
 Since we never remove a wall between rooms that already have a path between them, there will never be any loops.
 
 The algorithm to determine whether rooms have a path connecting them or not is fairly efficient.
-See <a href="http://en.wikipedia.org/wiki/Kruskal%27s_algorithm">Kruskal's algorithm</a>.
+See [Kruskal's algorithm](http://en.wikipedia.org/wiki/Kruskal%27s_algorithm).
