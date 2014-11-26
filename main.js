@@ -52,6 +52,7 @@
 
   var animationInterval = null;
   goButton.addEventListener("click", function() {
+    if (done) initGenerator(true);
     if (animationInterval == null) {
       // go
       animationInterval = setInterval(function() {
@@ -70,6 +71,7 @@
   }
   beDoneButton.addEventListener("click", function() {
     stopIt();
+    if (done) initGenerator(true);
     while (!done) {
       done = !generator.step();
     }
