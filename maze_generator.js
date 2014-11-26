@@ -64,6 +64,12 @@ MazeGenerator.prototype.scalarToRoom = function(scalar) {
   return {x:x, y:y};
 };
 
+MazeGenerator.prototype.getCanvasWidth = function() {
+  return (this.sizeX + 1) * this.cellSize;
+};
+MazeGenerator.prototype.getCanvasHeight = function() {
+  return (this.sizeY + 1) * this.cellSize;
+};
 MazeGenerator.prototype.render = function(canvas) {
   var context = canvas.getContext("2d");
   var cellSize = this.cellSize;

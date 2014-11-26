@@ -20,6 +20,8 @@
       if (generator.sizeX === sizeX && generator.sizeY === sizeY) return;
     }
     generator = new KruskalGenerator(sizeX, sizeY);
+    canvas.width = generator.getCanvasWidth();
+    canvas.height = generator.getCanvasHeight();
     generator.render(canvas);
     done = false;
   }
@@ -28,6 +30,9 @@
     setTimeout(initGenerator, 0);
   });
   sizeXTextbox.addEventListener("keydown", function() {
+    setTimeout(initGenerator, 0);
+  });
+  sizeYTextbox.addEventListener("keydown", function() {
     setTimeout(initGenerator, 0);
   });
 
