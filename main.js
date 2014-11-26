@@ -8,18 +8,28 @@
   var beDoneButton = window.document.getElementById("beDoneButton");
   var resetButton = window.document.getElementById("resetButton");
 
+  var algorithms = {
+    "KruskalGenerator": KruskalGenerator,
+    "PrimGenerator": PrimGenerator,
+    "DepthFirstSearchGenerator": DepthFirstSearchGenerator,
+  };
   var generator;
   var done;
   initGenerator();
   function initGenerator(refresh) {
     stopIt();
+    var algorithmFunction = algorithms[algorithmCombobox.value];
     var sizeX = parseInt(sizeXTextbox.value, 10) || 1;
     var sizeY = parseInt(sizeYTextbox.value, 10) || 1;
     if (!refresh && generator != null) {
       // if nothing's changed, don't reset
-      if (generator.sizeX === sizeX && generator.sizeY === sizeY) return;
+      if (generator.constructor === algorithmFunction &&
+          generator.sizeX === sizeX &&
+          generator.sizeY === sizeY) {
+        return;
+      }
     }
-    generator = new KruskalGenerator(sizeX, sizeY);
+    generator = new algorithmFunction(sizeX, sizeY);
     canvas.width = generator.getCanvasWidth();
     canvas.height = generator.getCanvasHeight();
     generator.render(canvas);

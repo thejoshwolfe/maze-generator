@@ -4,6 +4,8 @@
     <script src="util.js"></script>
     <script src="maze_generator.js"></script>
     <script src="kruskal.js"></script>
+    <script src="prim.js"></script>
+    <script src="depthfirstsearch.js"></script>
     <style>
       .numberTextbox {
         width: 30px;
@@ -13,9 +15,9 @@
   </head>
   <body>
     <select id="algorithmCombobox">
-      <option value="KruskalGenerator" selected="selected">KruskalGenerator</option>
-      <option value="PrimGenerator">PrimGenerator</option>
-      <option value="DepthFirstSearchGenerator">DepthFirstSearchGenerator</option>
+      <option value="KruskalGenerator" selected="selected">Kruskal</option>
+      <option value="PrimGenerator">Prim</option>
+      <option value="DepthFirstSearchGenerator">Depth-First Search</option>
     </select>
     Size: <input id="sizeXTextbox" class="numberTextbox" value="15">x<input id="sizeYTextbox" class="numberTextbox" value="15">
     <br>
