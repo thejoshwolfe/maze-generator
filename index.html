@@ -4,13 +4,27 @@
     <script src="util.js"></script>
     <script src="maze_generator.js"></script>
     <script src="kruskal.js"></script>
+    <style>
+      .numberTextbox {
+        width: 30px;
+        text-align: right;
+      }
+    </style>
   </head>
   <body>
+    <select id="algorithmCombobox">
+      <option value="KruskalGenerator" selected="selected">KruskalGenerator</option>
+      <option value="PrimGenerator">PrimGenerator</option>
+      <option value="DepthFirstSearchGenerator">DepthFirstSearchGenerator</option>
+    </select>
+    Size: <input id="sizeXTextbox" class="numberTextbox" value="15">x<input id="sizeYTextbox" class="numberTextbox" value="15">
+    <br>
     <canvas id="canvas" height=200 width=200></canvas>
     <br>
     <button id="goButton">Go</button>
     <button id="stepButton">Step</button>
     <button id="beDoneButton">Be Done</button>
+    <button id="resetButton">Reset</button>
     <script src="main.js"></script>
   </body>
 </html>

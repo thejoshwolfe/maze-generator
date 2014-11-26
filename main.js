@@ -1,12 +1,35 @@
 (function() {
+  var algorithmCombobox = window.document.getElementById("algorithmCombobox");
+  var sizeXTextbox = window.document.getElementById("sizeXTextbox");
+  var sizeYTextbox = window.document.getElementById("sizeYTextbox");
   var canvas = window.document.getElementById("canvas");
   var stepButton = window.document.getElementById("stepButton");
   var goButton = window.document.getElementById("goButton");
   var beDoneButton = window.document.getElementById("beDoneButton");
+  var resetButton = window.document.getElementById("resetButton");
 
-  var generator = new KruskalGenerator(15, 15);
-  generator.render(canvas);
-  var done = false;
+  var generator;
+  var done;
+  initGenerator();
+  function initGenerator(refresh) {
+    stopIt();
+    var sizeX = parseInt(sizeXTextbox.value, 10) || 1;
+    var sizeY = parseInt(sizeYTextbox.value, 10) || 1;
+    if (!refresh && generator != null) {
+      // if nothing's changed, don't reset
+      if (generator.sizeX === sizeX && generator.sizeY === sizeY) return;
+    }
+    generator = new KruskalGenerator(sizeX, sizeY);
+    generator.render(canvas);
+    done = false;
+  }
+
+  algorithmCombobox.addEventListener("change", function() {
+    setTimeout(initGenerator, 0);
+  });
+  sizeXTextbox.addEventListener("keydown", function() {
+    setTimeout(initGenerator, 0);
+  });
 
   stepButton.addEventListener("click", function() {
     step();
@@ -25,18 +48,20 @@
     }
   });
   function stopIt() {
+    if (animationInterval == null) return;
     clearInterval(animationInterval);
     animationInterval = null;
     goButton.textContent = "Go";
   }
   beDoneButton.addEventListener("click", function() {
-    if (animationInterval != null) {
-      stopIt();
-    }
+    stopIt();
     while (!done) {
       done = !generator.step();
     }
     generator.render(canvas);
+  });
+  resetButton.addEventListener("click", function() {
+    initGenerator(true);
   });
 
   function step() {
