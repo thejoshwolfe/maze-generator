@@ -46,3 +46,15 @@ Repeat this process until the candidate list is depleted.
 
 All rooms will eventually be added to the maze, because every wall from every room in the maze will eventually be considered.
 Since we never open up a wall that separates two rooms that are already in the maze, there will never be any loops.
+
+### Depth-First Search
+
+Start with all the walls filled in and all the rooms filled in (black).
+Randomly walk through the rooms while opening walls and rooms to make the traversal possible.
+Only open walls that lead to black rooms.
+If there are no black rooms adjacent to our current position, back up until there are.
+Keep track of the path traveled (blue) to get to this point to make the backtracking possible.
+(Don't include the backtracking in the path to get to this point.)
+
+Since we back up until we find adjacent black rooms, all rooms will eventually get explored.
+Since we only open walls to black rooms, we never create loops.
