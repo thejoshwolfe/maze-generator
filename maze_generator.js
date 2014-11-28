@@ -1,25 +1,35 @@
 
-function MazeGenerator(x, y, initiallyFilled) {
+MazeGenerator.FILLED = "#000000";
+MazeGenerator.OPEN = "#ffffff";
+function MazeGenerator(x, y, initialWallColor, initialRoomColor) {
   this.cellSize = 10;
   this.cellSizeHalf = this.cellSize / 2;
 
   this.sizeX = x;
   this.sizeY = y;
-  this.horizontalWalls = [];
+  this.horizontalWallColors = [];
   for (var i = 0; i < x; i++) {
     var ladder = [];
     for (var j = 0; j < y - 1; j++) {
-      ladder.push(initiallyFilled);
+      ladder.push(initialWallColor);
     }
-    this.horizontalWalls.push(ladder);
+    this.horizontalWallColors.push(ladder);
   }
-  this.verticalWalls = [];
+  this.verticalWallColors = [];
   for (var i = 0; i < x - 1; i++) {
     var pole = [];
     for (var j = 0; j < y; j++) {
-      pole.push(initiallyFilled);
+      pole.push(initialWallColor);
     }
-    this.verticalWalls.push(pole);
+    this.verticalWallColors.push(pole);
+  }
+  this.roomColors = [];
+  for (var x = 0; x < this.sizeX; x++) {
+    var column = [];
+    for (var y = 0; y < this.sizeY; y++) {
+      column.push(initialRoomColor);
+    }
+    this.roomColors.push(column);
   }
 };
 
@@ -27,29 +37,31 @@ MazeGenerator.prototype.getWallCount = function() {
   return this.sizeX * (this.sizeY - 1) + (this.sizeX - 1) * this.sizeY;
 };
 MazeGenerator.prototype.wallToScalar = function(wallsArray, i, j) {
-  if (wallsArray === this.horizontalWalls) {
-    // horizontalWalls
+  if (wallsArray === this.horizontalWallColors) {
+    // horizontalWallColors
     return i * (this.sizeY - 1) + j;
   } else {
-    // verticalWalls
+    // verticalWallColors
     var horizontalWallsSize = this.sizeX * (this.sizeY - 1);
     return horizontalWallsSize + i * this.sizeY + j;
   }
 };
 MazeGenerator.prototype.scalarToWall = function(scalar) {
-  var result = {};
+  var wallsArray;
+  var i;
+  var j;
   var horizontalWallsSize = this.sizeX * (this.sizeY - 1);
   if (scalar < horizontalWallsSize) {
-    result.wallsArray = this.horizontalWalls;
-    result.i = Math.floor(scalar / (this.sizeY - 1));
-    result.j = scalar % (this.sizeY - 1);
+    wallsArray = this.horizontalWallColors;
+    i = Math.floor(scalar / (this.sizeY - 1));
+    j = scalar % (this.sizeY - 1);
   } else {
     scalar -= horizontalWallsSize;
-    result.wallsArray = this.verticalWalls;
-    result.i = Math.floor(scalar / this.sizeY);
-    result.j = scalar % this.sizeY;
+    wallsArray = this.verticalWallColors;
+    i = Math.floor(scalar / this.sizeY);
+    j = scalar % this.sizeY;
   }
-  return result;
+  return {wallsArray:wallsArray, i:i, j:j};
 };
 
 MazeGenerator.prototype.getRoomCount = function() {
@@ -76,13 +88,26 @@ MazeGenerator.prototype.render = function(canvas) {
   var cellSizeHalf = this.cellSizeHalf;
   context.fillStyle = "#ffffff";
   context.fillRect(0, 0, canvas.width, canvas.height);
-  context.strokeStyle = "#000000";
-  // horizontalWalls
+
+  // roomColors
+  for (var x = 0; x < this.sizeX; x++) {
+    for (var y = 0; y < this.sizeY; y++) {
+      var color = this.roomColors[x][y];
+      if (color !== MazeGenerator.OPEN) {
+        context.fillStyle = color;
+        context.fillRect(x * cellSize + cellSize - cellSizeHalf, y * cellSize + cellSize - cellSizeHalf, cellSize, cellSize);
+      }
+    }
+  }
+
+  // walls
+  // horizontalWallColors
   for (var i = 0; i < this.sizeX; i++) {
-    var ladder = this.horizontalWalls[i];
+    var ladder = this.horizontalWallColors[i];
     for (var j = -1; j < this.sizeY - 1 + 1; j++) {
       var drawIt = ladder[j];
-      if (drawIt == null || drawIt === true) {
+      if (drawIt == null || drawIt === MazeGenerator.FILLED) {
+        context.strokeStyle = "#000000";
         context.beginPath();
         context.moveTo(i * cellSize + cellSize + cellSizeHalf, j * cellSize + cellSize + cellSizeHalf);
         context.lineTo(i * cellSize + cellSize - cellSizeHalf, j * cellSize + cellSize + cellSizeHalf);
@@ -90,12 +115,12 @@ MazeGenerator.prototype.render = function(canvas) {
       }
     }
   }
-  // verticalWalls
+  // verticalWallColors
   for (var i = -1; i < this.sizeX - 1 + 1; i++) {
-    var pole = this.verticalWalls[i];
+    var pole = this.verticalWallColors[i];
     for (var j = 0; j < this.sizeY; j++) {
-      var drawIt = pole == null || pole[j];
-      if (drawIt === true) {
+      var drawIt = pole == null ? MazeGenerator.FILLED : pole[j];
+      if (drawIt === MazeGenerator.FILLED) {
         context.beginPath();
         context.moveTo(i * cellSize + cellSize + cellSizeHalf, j * cellSize + cellSize + cellSizeHalf);
         context.lineTo(i * cellSize + cellSize + cellSizeHalf, j * cellSize + cellSize - cellSizeHalf);

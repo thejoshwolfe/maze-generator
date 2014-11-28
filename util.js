@@ -20,4 +20,14 @@ window.util = {
       }
     });
   },
+
+  popRandom: function(array) {
+    // like one iteration of the shuffle function
+    var index = Math.floor(Math.random() * array.length);
+    var lastIndex = array.length - 1;
+    var tmp = array[index];
+    array[index] = array[lastIndex];
+    array[lastIndex] = tmp;
+    return array.pop();
+  },
 };

@@ -1,6 +1,6 @@
 util.inherits(KruskalGenerator, MazeGenerator);
 function KruskalGenerator(x, y) {
-  MazeGenerator.call(this, x, y, true);
+  MazeGenerator.call(this, x, y, MazeGenerator.FILLED, MazeGenerator.OPEN);
 
   // the order in which we try to delete things
   this.edges = [];
@@ -24,11 +24,11 @@ KruskalGenerator.prototype.wallToRoomScalarPair = function(wall) {
   var x = wall.i;
   var y = wall.j;
   result.push(this.roomToScalar(x, y));
-  if (wall.wallsArray === this.horizontalWalls) {
-    // horizontalWalls
+  if (wall.wallsArray === this.horizontalWallColors) {
+    // horizontalWallColors
     y += 1;
   } else {
-    // verticalWalls
+    // verticalWallColors
     x += 1;
   }
   result.push(this.roomToScalar(x, y));
@@ -54,7 +54,7 @@ KruskalGenerator.prototype.step = function() {
     var wall = this.scalarToWall(edge);
     var roomPair = this.wallToRoomScalarPair(wall);
     if (this.mergeRooms(roomPair[0], roomPair[1])) {
-      wall.wallsArray[wall.i][wall.j] = false;
+      wall.wallsArray[wall.i][wall.j] = MazeGenerator.OPEN;
       return true;
     }
     // already merged
