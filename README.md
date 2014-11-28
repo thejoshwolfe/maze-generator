@@ -19,17 +19,17 @@ Since there is only one path between any two points, it doesn't really matter wh
 
 See Wikipedia's page on [maze generator algorithms](http://en.wikipedia.org/wiki/Maze_generation_algorithm).
 
-### Kruskal
+### Depth-First Search
 
-Start with all walls filled in.
-Randomly iterate over every wall in the maze.
-If the wall separates two areas that are closed off from each other, remove the wall, otherwise leave it alone.
+Start with all the walls filled in and all the rooms filled in (black).
+Randomly walk through the rooms while opening walls and rooms to make the traversal possible.
+Only open walls that lead to black rooms.
+If there are no black rooms adjacent to our current position, back up until there are.
+Keep track of the path traveled (blue) to get to this point to make the backtracking possible.
+(Don't include the backtracking in the path to get to this point.)
 
-Since we consider every wall, all rooms will eventually become accessible.
-Since we never remove a wall between rooms that already have a path between them, there will never be any loops.
-
-The algorithm to determine whether rooms have a path connecting them or not is fairly efficient.
-See [Kruskal's algorithm](http://en.wikipedia.org/wiki/Kruskal%27s_algorithm).
+Since we back up until we find adjacent black rooms, all rooms will eventually get explored.
+Since we only open walls to black rooms, we never create loops.
 
 ### Prim
 
@@ -47,14 +47,14 @@ Repeat this process until the candidate list is depleted.
 All rooms will eventually be added to the maze, because every wall from every room in the maze will eventually be considered.
 Since we never open up a wall that separates two rooms that are already in the maze, there will never be any loops.
 
-### Depth-First Search
+### Kruskal
 
-Start with all the walls filled in and all the rooms filled in (black).
-Randomly walk through the rooms while opening walls and rooms to make the traversal possible.
-Only open walls that lead to black rooms.
-If there are no black rooms adjacent to our current position, back up until there are.
-Keep track of the path traveled (blue) to get to this point to make the backtracking possible.
-(Don't include the backtracking in the path to get to this point.)
+Start with all walls filled in.
+Randomly iterate over every wall in the maze.
+If the wall separates two areas that are closed off from each other, remove the wall, otherwise leave it alone.
 
-Since we back up until we find adjacent black rooms, all rooms will eventually get explored.
-Since we only open walls to black rooms, we never create loops.
+Since we consider every wall, all rooms will eventually become accessible.
+Since we never remove a wall between rooms that already have a path between them, there will never be any loops.
+
+The algorithm to determine whether rooms have a path connecting them or not is fairly efficient.
+See [Kruskal's algorithm](http://en.wikipedia.org/wiki/Kruskal%27s_algorithm).
