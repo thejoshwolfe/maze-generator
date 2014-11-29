@@ -18,27 +18,25 @@
     "DepthFirstSearchGenerator": DepthFirstSearchGenerator,
     "IvyGenerator": IvyGenerator,
   };
-  var generator;
-  var done;
+  var maze;
   initGenerator();
   function initGenerator(refresh) {
     stopIt();
     var algorithmFunction = algorithms[algorithmCombobox.value];
     var sizeX = parseInt(sizeXTextbox.value, 10) || 1;
     var sizeY = parseInt(sizeYTextbox.value, 10) || 1;
-    if (!refresh && generator != null) {
+    if (!refresh && maze != null) {
       // if nothing's changed, don't reset
-      if (generator.constructor === algorithmFunction &&
-          generator.sizeX === sizeX &&
-          generator.sizeY === sizeY) {
+      if (maze.constructor === algorithmFunction &&
+          maze.sizeX === sizeX &&
+          maze.sizeY === sizeY) {
         return;
       }
     }
-    generator = new algorithmFunction(sizeX, sizeY);
-    canvas.width = generator.getCanvasWidth();
-    canvas.height = generator.getCanvasHeight();
-    generator.render(canvas);
-    done = false;
+    maze = new algorithmFunction(sizeX, sizeY);
+    canvas.width = maze.getCanvasWidth();
+    canvas.height = maze.getCanvasHeight();
+    maze.render(canvas);
   }
 
   algorithmCombobox.addEventListener("change", function() {
@@ -57,7 +55,7 @@
 
   var animationInterval = null;
   goButton.addEventListener("click", function() {
-    if (done) initGenerator(true);
+    if (maze.isDone) initGenerator(true);
     if (animationInterval == null) {
       // go
       animationInterval = setInterval(function() {
@@ -76,25 +74,25 @@
   }
   beDoneButton.addEventListener("click", function() {
     stopIt();
-    if (done) initGenerator(true);
-    while (!done) {
-      done = !generator.step();
+    if (maze.isDone) initGenerator(true);
+    while (!maze.isDone) {
+      maze.step();
     }
-    generator.render(canvas);
+    maze.render(canvas);
   });
   resetButton.addEventListener("click", function() {
     initGenerator(true);
   });
 
   shaveButton.addEventListener("click", function() {
-    generator.shave();
-    generator.render(canvas);
+    maze.shave();
+    maze.render(canvas);
   });
 
   function step() {
-    done = !generator.step();
-    generator.render(canvas);
-    if (done && animationInterval != null) {
+    maze.step();
+    maze.render(canvas);
+    if (maze.isDone && animationInterval != null) {
       stopIt();
     }
   }

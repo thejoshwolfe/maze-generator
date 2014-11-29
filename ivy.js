@@ -33,8 +33,7 @@ function IvyGenerator(x, y) {
 }
 
 IvyGenerator.prototype.step = function() {
-  while (true) {
-    if (this.availableBranches.length === 0) return false;
+  while (this.availableBranches.length > 0) {
     var branch = util.popRandom(this.availableBranches);
     if (this.vertexHasBeenVisited[branch.toVertexScalar]) continue;
     this.vertexHasBeenVisited[branch.toVertexScalar] = true;
@@ -44,6 +43,7 @@ IvyGenerator.prototype.step = function() {
     var vertex = this.scalarToVertex(branch.toVertexScalar);
     var branches = this.vertexToBranches(vertex.x, vertex.y);
     Array.prototype.push.apply(this.availableBranches, branches);
-    return true;
+    return;
   }
+  this.isDone = true;
 };

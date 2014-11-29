@@ -50,14 +50,14 @@ PrimGenerator.prototype.addRoomToMaze = function(roomScalar) {
 };
 
 PrimGenerator.prototype.step = function() {
-  while (true) {
-    if (this.transitionVectors.length === 0) return false;
+  while (this.transitionVectors.length > 0) {
     var vector = util.popRandom(this.transitionVectors);
-    if (!this.includedRooms[vector.toRoomScalar]) break;
+    if (this.includedRooms[vector.toRoomScalar]) continue;
+    // open the door
+    var wall = vector.wall;
+    wall.wallsArray[wall.i][wall.j] = MazeGenerator.OPEN;
+    this.addRoomToMaze(vector.toRoomScalar);
+    return;
   }
-  // open the door
-  var wall = vector.wall;
-  wall.wallsArray[wall.i][wall.j] = MazeGenerator.OPEN;
-  this.addRoomToMaze(vector.toRoomScalar);
-  return true;
+  this.isDone = true;
 };

@@ -31,6 +31,8 @@ function MazeGenerator(x, y, initialWallColor, initialRoomColor) {
     }
     this.roomColors.push(column);
   }
+
+  this.isDone = false;
 };
 
 MazeGenerator.prototype.getWallCount = function() {
