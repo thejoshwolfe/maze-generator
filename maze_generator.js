@@ -107,9 +107,10 @@ MazeGenerator.prototype.render = function(canvas) {
   for (var i = 0; i < this.sizeX; i++) {
     var ladder = this.horizontalWallColors[i];
     for (var j = -1; j < this.sizeY - 1 + 1; j++) {
-      var drawIt = ladder[j];
-      if (drawIt == null || drawIt === MazeGenerator.FILLED) {
-        context.strokeStyle = "#000000";
+      var color = ladder[j];
+      if (color == null) color = MazeGenerator.FILLED;
+      if (color !== MazeGenerator.OPEN) {
+        context.strokeStyle = color;
         context.beginPath();
         context.moveTo(i * cellSize + cellSize + cellSizeHalf, j * cellSize + cellSize + cellSizeHalf);
         context.lineTo(i * cellSize + cellSize - cellSizeHalf, j * cellSize + cellSize + cellSizeHalf);
@@ -121,8 +122,9 @@ MazeGenerator.prototype.render = function(canvas) {
   for (var i = -1; i < this.sizeX - 1 + 1; i++) {
     var pole = this.verticalWallColors[i];
     for (var j = 0; j < this.sizeY; j++) {
-      var drawIt = pole == null ? MazeGenerator.FILLED : pole[j];
-      if (drawIt === MazeGenerator.FILLED) {
+      var color = pole == null ? MazeGenerator.FILLED : pole[j];
+      if (color !== MazeGenerator.OPEN) {
+        context.strokeStyle = color;
         context.beginPath();
         context.moveTo(i * cellSize + cellSize + cellSizeHalf, j * cellSize + cellSize + cellSizeHalf);
         context.lineTo(i * cellSize + cellSize + cellSizeHalf, j * cellSize + cellSize - cellSizeHalf);

@@ -1,6 +1,8 @@
 util.inherits(KruskalGenerator, MazeGenerator);
+
+KruskalGenerator.CONSIDERING = "#aaaaaa";
 function KruskalGenerator(x, y) {
-  MazeGenerator.call(this, x, y, MazeGenerator.FILLED, MazeGenerator.OPEN);
+  MazeGenerator.call(this, x, y, KruskalGenerator.CONSIDERING, MazeGenerator.OPEN);
 
   // the order in which we try to delete things
   this.edges = [];
@@ -54,8 +56,11 @@ KruskalGenerator.prototype.step = function() {
     var wall = this.scalarToWall(edge);
     var roomPair = this.wallToRoomScalarPair(wall);
     var theMergeHappened = this.mergeRooms(roomPair[0], roomPair[1]);
-    if (!theMergeHappened) continue;
-    wall.wallsArray[wall.i][wall.j] = MazeGenerator.OPEN;
+    if (theMergeHappened) {
+      wall.wallsArray[wall.i][wall.j] = MazeGenerator.OPEN;
+    } else {
+      wall.wallsArray[wall.i][wall.j] = MazeGenerator.FILLED;
+    }
     return;
   }
   this.isDone = true;
