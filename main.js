@@ -17,6 +17,7 @@
     "PrimGenerator": PrimGenerator,
     "DepthFirstSearchGenerator": DepthFirstSearchGenerator,
     "IvyGenerator": IvyGenerator,
+    "DepthFirstIvyGenerator": DepthFirstIvyGenerator,
   };
   var maze;
   initGenerator();

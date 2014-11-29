@@ -37,8 +37,7 @@ IvyGenerator.prototype.step = function() {
     var branch = util.popRandom(this.availableBranches);
     if (this.vertexHasBeenVisited[branch.toVertexScalar]) continue;
     this.vertexHasBeenVisited[branch.toVertexScalar] = true;
-    var wall = branch.wall;
-    wall.wallsArray[wall.i][wall.j] = MazeGenerator.FILLED;
+    this.colorWall(branch.wall, MazeGenerator.FILLED);
 
     var vertex = this.scalarToVertex(branch.toVertexScalar);
     var branches = this.vertexToBranches(vertex.x, vertex.y);

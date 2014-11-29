@@ -65,6 +65,9 @@ MazeGenerator.prototype.scalarToWall = function(scalar) {
   }
   return {wallsArray:wallsArray, i:i, j:j};
 };
+MazeGenerator.prototype.colorWall = function(wall, color) {
+  wall.wallsArray[wall.i][wall.j] = color;
+};
 
 MazeGenerator.prototype.getRoomCount = function() {
   return this.sizeX * this.sizeY;

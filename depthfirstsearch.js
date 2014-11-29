@@ -52,8 +52,7 @@ DepthFirstSearchGenerator.prototype.step = function() {
     }
     // go in a random direction
     var vector = vectors[Math.floor(Math.random() * vectors.length)];
-    var wall = vector.wall;
-    wall.wallsArray[wall.i][wall.j] = MazeGenerator.OPEN;
+    this.colorWall(vector.wall, MazeGenerator.OPEN);
     this.roomColors[vector.neighbor.x][vector.neighbor.y] = DepthFirstSearchGenerator.CONSIDERING;
     var neighborScalar = this.roomToScalar(vector.neighbor.x, vector.neighbor.y);
     this.stack.push(neighborScalar);

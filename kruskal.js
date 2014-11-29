@@ -57,9 +57,9 @@ KruskalGenerator.prototype.step = function() {
     var roomPair = this.wallToRoomScalarPair(wall);
     var theMergeHappened = this.mergeRooms(roomPair[0], roomPair[1]);
     if (theMergeHappened) {
-      wall.wallsArray[wall.i][wall.j] = MazeGenerator.OPEN;
+      this.colorWall(wall, MazeGenerator.OPEN);
     } else {
-      wall.wallsArray[wall.i][wall.j] = MazeGenerator.FILLED;
+      this.colorWall(wall, MazeGenerator.FILLED);
     }
     return;
   }
