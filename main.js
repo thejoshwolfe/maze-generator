@@ -12,6 +12,7 @@
     "KruskalGenerator": KruskalGenerator,
     "PrimGenerator": PrimGenerator,
     "DepthFirstSearchGenerator": DepthFirstSearchGenerator,
+    "IvyGenerator": IvyGenerator,
   };
   var generator;
   var done;
