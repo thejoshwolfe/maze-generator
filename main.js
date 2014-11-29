@@ -2,11 +2,15 @@
   var algorithmCombobox = window.document.getElementById("algorithmCombobox");
   var sizeXTextbox = window.document.getElementById("sizeXTextbox");
   var sizeYTextbox = window.document.getElementById("sizeYTextbox");
+
   var canvas = window.document.getElementById("canvas");
+
   var stepButton = window.document.getElementById("stepButton");
   var goButton = window.document.getElementById("goButton");
   var beDoneButton = window.document.getElementById("beDoneButton");
   var resetButton = window.document.getElementById("resetButton");
+
+  var shaveButton = window.document.getElementById("shaveButton");
 
   var algorithms = {
     "KruskalGenerator": KruskalGenerator,
@@ -80,6 +84,11 @@
   });
   resetButton.addEventListener("click", function() {
     initGenerator(true);
+  });
+
+  shaveButton.addEventListener("click", function() {
+    generator.shave();
+    generator.render(canvas);
   });
 
   function step() {

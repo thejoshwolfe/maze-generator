@@ -32,15 +32,6 @@ function IvyGenerator(x, y) {
   }
 }
 
-IvyGenerator.prototype.scalarToVertex = function(vertexScalar) {
-  var x = Math.floor(vertexScalar / (this.sizeY - 1));
-  var y = vertexScalar % (this.sizeY - 1);
-  return {x:x, y:y};
-};
-IvyGenerator.prototype.vertexToScalar = function(x, y) {
-  return (this.sizeY - 1) * x + y;
-};
-
 IvyGenerator.prototype.step = function() {
   while (true) {
     if (this.availableBranches.length === 0) return false;
@@ -51,30 +42,8 @@ IvyGenerator.prototype.step = function() {
     wall.wallsArray[wall.i][wall.j] = MazeGenerator.FILLED;
 
     var vertex = this.scalarToVertex(branch.toVertexScalar);
-    if (vertex.y > 0) {
-      this.availableBranches.push({
-        toVertexScalar:this.vertexToScalar(vertex.x, vertex.y - 1),
-        wall:{wallsArray:this.verticalWallColors, i:vertex.x, j:vertex.y},
-      });
-    }
-    if (vertex.y < this.sizeY - 2) {
-      this.availableBranches.push({
-        toVertexScalar:this.vertexToScalar(vertex.x, vertex.y + 1),
-        wall:{wallsArray:this.verticalWallColors, i:vertex.x, j:vertex.y + 1},
-      });
-    }
-    if (vertex.x > 0) {
-      this.availableBranches.push({
-        toVertexScalar:this.vertexToScalar(vertex.x - 1, vertex.y),
-        wall:{wallsArray:this.horizontalWallColors, i:vertex.x, j:vertex.y},
-      });
-    }
-    if (vertex.x < this.sizeX - 2) {
-      this.availableBranches.push({
-        toVertexScalar:this.vertexToScalar(vertex.x + 1, vertex.y),
-        wall:{wallsArray:this.horizontalWallColors, i:vertex.x + 1, j:vertex.y},
-      });
-    }
+    var branches = this.vertexToBranches(vertex.x, vertex.y);
+    Array.prototype.push.apply(this.availableBranches, branches);
     return true;
   }
 };

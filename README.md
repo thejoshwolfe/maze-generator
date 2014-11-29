@@ -70,3 +70,15 @@ Continue choosing empty vertexes near non-empty vertexes and growing walls out t
 
 Since we never grow a wall to a vertex that already has a wall, we never close off any region making it inaccessible.
 Every wall is connected by other walls to the outside border, we never create loops.
+
+## Experiments
+
+Some things I thought might be interesting to look at.
+
+### Shave
+
+Removes all the "hairs" from the maze, which are walls that connect to a vertex that doesn't have any other walls connecting to it.
+This is a way of simplifying the overall shape of the maze by removing the most petty obstacles.
+
+If this process is repeated, all the walls will eventually shrink back into the maze borders.
+This bears somewhat of a resemblance to the Ivy algorithm in reverse.

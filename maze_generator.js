@@ -129,3 +129,67 @@ MazeGenerator.prototype.render = function(canvas) {
     }
   }
 };
+
+MazeGenerator.prototype.scalarToVertex = function(vertexScalar) {
+  var x = Math.floor(vertexScalar / (this.sizeY - 1));
+  var y = vertexScalar % (this.sizeY - 1);
+  return {x:x, y:y};
+};
+MazeGenerator.prototype.vertexToScalar = function(x, y) {
+  return (this.sizeY - 1) * x + y;
+};
+MazeGenerator.prototype.vertexToWalls = function(x, y) {
+  return [
+    {wallsArray:this.verticalWallColors, i:x, j:y},
+    {wallsArray:this.verticalWallColors, i:x, j:y + 1},
+    {wallsArray:this.horizontalWallColors, i:x, j:y},
+    {wallsArray:this.horizontalWallColors, i:x + 1, j:y},
+  ];
+};
+MazeGenerator.prototype.vertexToBranches = function(x, y) {
+  var branches = [];
+  if (y > 0) {
+    branches.push({
+      toVertexScalar:this.vertexToScalar(x, y - 1),
+      wall:{wallsArray:this.verticalWallColors, i:x, j:y},
+    });
+  }
+  if (y < this.sizeY - 2) {
+    branches.push({
+      toVertexScalar:this.vertexToScalar(x, y + 1),
+      wall:{wallsArray:this.verticalWallColors, i:x, j:y + 1},
+    });
+  }
+  if (x > 0) {
+    branches.push({
+      toVertexScalar:this.vertexToScalar(x - 1, y),
+      wall:{wallsArray:this.horizontalWallColors, i:x, j:y},
+    });
+  }
+  if (x < this.sizeX - 2) {
+    branches.push({
+      toVertexScalar:this.vertexToScalar(x + 1, y),
+      wall:{wallsArray:this.horizontalWallColors, i:x + 1, j:y},
+    });
+  }
+  return branches;
+};
+
+MazeGenerator.prototype.shave = function() {
+  var wallsToDelete = [];
+  for (var x = 0; x < this.sizeX - 1; x++) {
+    for (var y = 0; y < this.sizeY - 1; y++) {
+      var walls = this.vertexToWalls(x, y).filter(function(wall) {
+        return wall.wallsArray[wall.i][wall.j] === MazeGenerator.FILLED;
+      });
+      if (walls.length === 1) {
+        // this is a hair
+        wallsToDelete.push(walls[0]);
+      }
+    }
+  }
+  for (var i = 0; i < wallsToDelete.length; i++) {
+    var wall = wallsToDelete[i];
+    wall.wallsArray[wall.i][wall.j] = MazeGenerator.OPEN;
+  }
+};
