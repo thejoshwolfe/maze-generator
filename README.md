@@ -58,3 +58,15 @@ Since we never remove a wall between rooms that already have a path between them
 
 The algorithm to determine whether rooms have a path connecting them or not is fairly efficient.
 See [Kruskal's algorithm](http://en.wikipedia.org/wiki/Kruskal%27s_algorithm).
+
+### Ivy
+
+Consider the "vertexes" of the maze, which is the joints in the walls.
+If a room is a square and a wall is an edge, a vertex is a corner of the square.
+
+Start with a big open space.
+Choose a vertex location near a border of the room, and grow a wall out to it.
+Continue choosing empty vertexes near non-empty vertexes and growing walls out to them, until every vertex has a wall touching it.
+
+Since we never grow a wall to a vertex that already has a wall, we never close off any region making it inaccessible.
+Every wall is connected by other walls to the outside border, we never create loops.
