@@ -12,12 +12,13 @@ The mazes studied by this project are 2D grids of rooms that can have walls betw
 Given any two rooms anywhere in the grid, there must be one and only one path between them.
 This means that all rooms are accessible, and there are no loops in the maze.
 
-An entrance and exit can be placed into these mazes, but this is not within the scope of this project.
-Since there is only one path between any two points, it doesn't really matter where the entrance and exit are.
+Any two rooms in the maze could be chosen as the entrance and exit, and there would only be one path between them.
+Choosing an entrance and exit that make the puzzle "fun" is an interesting challenge, but it is outside the scope of this project.
 
 ## The Algorithms
 
 See Wikipedia's page on [maze generator algorithms](http://en.wikipedia.org/wiki/Maze_generation_algorithm).
+I've also added some of my own here.
 
 ### Depth-First Search
 
@@ -69,7 +70,17 @@ Choose a vertex location near a border of the room, and grow a wall out to it.
 Continue choosing empty vertexes near non-empty vertexes and growing walls out to them, until every vertex has a wall touching it.
 
 Since we never grow a wall to a vertex that already has a wall, we never close off any region making it inaccessible.
-Every wall is connected by other walls to the outside border, we never create loops.
+Since every vertex is connected by a chain of walls to the outside border, we never create a loop, which would necessitate either an "island" of walls or a 2x2 open space, i.e. a vertex with no walls.
+
+This algorithm is to vertexes, walls, and the border as the Prim algorithm is to rooms, doorways, and a random starting room.
+
+### Depth-First Ivy
+
+Like the Ivy algorithm above, but instead of randomly selecting among the vertexes adjacent to existing walls, traverse the open space like the Depth-First Search algorithm above.
+
+The reasons why this creates a correct maze are the same as for the Ivy algorithm.
+
+This algorithm is to vertexes, walls, and a random starting point on the border as the Depth-First Search algorithm is to rooms, doorways, and a random starting room.
 
 ## Experiments
 
