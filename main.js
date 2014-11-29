@@ -36,7 +36,7 @@
     maze = new algorithmFunction(sizeX, sizeY);
     canvas.width = maze.getCanvasWidth();
     canvas.height = maze.getCanvasHeight();
-    maze.render(canvas);
+    refreshDisplay();
   }
 
   algorithmCombobox.addEventListener("change", function() {
@@ -78,7 +78,7 @@
     while (!maze.isDone) {
       maze.step();
     }
-    maze.render(canvas);
+    refreshDisplay();
   });
   resetButton.addEventListener("click", function() {
     initGenerator(true);
@@ -86,14 +86,30 @@
 
   shaveButton.addEventListener("click", function() {
     maze.shave();
-    maze.render(canvas);
+    refreshDisplay();
   });
 
   function step() {
     maze.step();
-    maze.render(canvas);
+    refreshDisplay();
     if (maze.isDone && animationInterval != null) {
       stopIt();
+    }
+  }
+
+  function refreshDisplay() {
+    maze.render(canvas);
+    setEnabled(stepButton, !maze.isDone);
+    setEnabled(shaveButton, maze.isDone);
+  }
+
+  function setEnabled(button, value) {
+    var oldValue = button.getAttribute("disabled") == null;
+    if (value === oldValue) return;
+    if (value) {
+      button.removeAttribute("disabled");
+    } else {
+      button.setAttribute("disabled", "");
     }
   }
 })();
