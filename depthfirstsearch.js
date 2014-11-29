@@ -15,7 +15,7 @@ DepthFirstSearchGenerator.CONSIDERING = "#8888ff";
 DepthFirstSearchGenerator.prototype.addRoomToMaze = function(roomScalar) {
   this.stack.push(roomScalar);
   var room = this.scalarToRoom(roomScalar);
-  this.roomColors[room.x][room.y] = MazeGenerator.OPEN;
+  this.roomColors[room.x][room.y] = DepthFirstSearchGenerator.CONSIDERING;
 };
 
 DepthFirstSearchGenerator.prototype.step = function() {
@@ -42,7 +42,7 @@ DepthFirstSearchGenerator.prototype.step = function() {
       // bounds check
       if (neighbor.x < 0 || neighbor.x >= self.sizeX) continue;
       if (neighbor.y < 0 || neighbor.y >= self.sizeY) continue;
-      // make sure we're not ceating a loop
+      // make sure we're not creating a loop
       if (self.roomColors[neighbor.x][neighbor.y] !== MazeGenerator.FILLED) continue;
       vectors.push({wall:walls[i], neighbor:neighbor});
     }
