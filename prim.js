@@ -54,7 +54,7 @@ PrimGenerator.prototype.step = function() {
     var vector = util.popRandom(this.transitionVectors);
     if (this.includedRooms[vector.toRoomScalar]) continue;
     // open the door
-    this.colorWall(vector.wall, MazeGenerator.OPEN);
+    this.setWallColor(vector.wall, MazeGenerator.OPEN);
     this.addRoomToMaze(vector.toRoomScalar);
     return;
   }

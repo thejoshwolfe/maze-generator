@@ -39,7 +39,7 @@ function DepthFirstIvyGenerator(x, y) {
 DepthFirstIvyGenerator.prototype.pushBranch = function(branch) {
   this.vertexHasBeenVisited[branch.toVertexScalar] = true;
   this.stack.push(branch);
-  this.colorWall(branch.wall, DepthFirstIvyGenerator.CONSIDERING);
+  this.setWallColor(branch.wall, DepthFirstIvyGenerator.CONSIDERING);
 };
 
 DepthFirstIvyGenerator.prototype.step = function() {
@@ -57,7 +57,7 @@ DepthFirstIvyGenerator.prototype.step = function() {
     } else {
       // pop branch
       self.stack.pop();
-      self.colorWall(branch.wall, MazeGenerator.FILLED);
+      self.setWallColor(branch.wall, MazeGenerator.FILLED);
     }
     return;
   }

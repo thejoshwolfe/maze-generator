@@ -16,6 +16,7 @@
     </style>
   </head>
   <body>
+    <p>See <a href="https://github.com/thejoshwolfe/maze-generator">this project on github</a> for more information.</p>
     <select id="algorithmCombobox">
       <option value="DepthFirstSearchGenerator" selected="selected">Depth-First Search</option>
       <option value="PrimGenerator">Prim</option>
@@ -35,9 +36,8 @@
       Experimental:
       <button id="shaveButton">Shave</button>
     </p>
-    <p>
-      See <a href="https://github.com/thejoshwolfe/maze-generator">this project on github</a> for more information.
-    </p>
+    <p>Statistics:</p>
+    <p><label><input id="doorsPerRoomCheckbox" type="checkbox">Doors per room:</label> <span id="doorsPerRoomSpan"></span></p>
     <script src="main.js"></script>
   </body>
 </html>

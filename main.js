@@ -12,6 +12,9 @@
 
   var shaveButton = window.document.getElementById("shaveButton");
 
+  var doorsPerRoomCheckbox = window.document.getElementById("doorsPerRoomCheckbox");
+  var doorsPerRoomSpan = window.document.getElementById("doorsPerRoomSpan");
+
   var algorithms = {
     "KruskalGenerator": KruskalGenerator,
     "PrimGenerator": PrimGenerator,
@@ -20,6 +23,10 @@
     "DepthFirstIvyGenerator": DepthFirstIvyGenerator,
   };
   var maze;
+
+  var animationInterval = null;
+  var wasDone = false;
+
   initGenerator();
   function initGenerator(refresh) {
     stopIt();
@@ -35,6 +42,7 @@
       }
     }
     maze = new algorithmFunction(sizeX, sizeY);
+    wasDone = false;
     canvas.width = maze.getCanvasWidth();
     canvas.height = maze.getCanvasHeight();
     refreshDisplay();
@@ -54,7 +62,6 @@
     step();
   });
 
-  var animationInterval = null;
   goButton.addEventListener("click", function() {
     if (maze.isDone) initGenerator(true);
     if (animationInterval == null) {
@@ -90,6 +97,10 @@
     refreshDisplay();
   });
 
+  doorsPerRoomCheckbox.addEventListener("click", function() {
+    setTimeout(updateStatistics, 0);
+  });
+
   function step() {
     maze.step();
     refreshDisplay();
@@ -100,13 +111,33 @@
 
   function refreshDisplay() {
     maze.render(canvas);
-    setEnabled(stepButton, !maze.isDone);
-    setEnabled(shaveButton, maze.isDone);
+    var nowDone = maze.isDone;
+    if (nowDone !== wasDone) {
+      setEnabled(stepButton, !nowDone);
+      setEnabled(shaveButton, nowDone);
+    }
+    wasDone = nowDone;
+    updateStatistics();
+  }
+
+  function updateStatistics() {
+    if (doorsPerRoomCheckbox.checked && maze.isDone) {
+      var doorsPerRoom = {1:0, 2:0, 3:0, 4:0};
+      var roomCount = maze.getRoomCount();
+      for (var i = 0; i < roomCount; i++) {
+        var room = maze.scalarToRoom(i);
+        var doorCount = maze.roomToVectors(room.x, room.y).filter(function(vector) {
+          return maze.getWallColor(vector.wall) === MazeGenerator.OPEN;
+        }).length;
+        doorsPerRoom[doorCount]++;
+      }
+      doorsPerRoomSpan.textContent = JSON.stringify(doorsPerRoom);
+    } else {
+      doorsPerRoomSpan.textContent = "";
+    }
   }
 
   function setEnabled(button, value) {
-    var oldValue = button.getAttribute("disabled") == null;
-    if (value === oldValue) return;
     if (value) {
       button.removeAttribute("disabled");
     } else {
