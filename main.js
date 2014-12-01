@@ -3,7 +3,7 @@
   var sizeXTextbox = window.document.getElementById("sizeXTextbox");
   var sizeYTextbox = window.document.getElementById("sizeYTextbox");
 
-  var canvas = window.document.getElementById("canvas");
+  var mazeCanvas = window.document.getElementById("mazeCanvas");
 
   var stepButton = window.document.getElementById("stepButton");
   var goButton = window.document.getElementById("goButton");
@@ -13,7 +13,7 @@
   var shaveButton = window.document.getElementById("shaveButton");
 
   var doorsPerRoomCheckbox = window.document.getElementById("doorsPerRoomCheckbox");
-  var doorsPerRoomSpan = window.document.getElementById("doorsPerRoomSpan");
+  var doorsPerRoomCanvas = window.document.getElementById("doorsPerRoomCanvas");
 
   var algorithms = {
     "KruskalGenerator": KruskalGenerator,
@@ -43,8 +43,8 @@
     }
     maze = new algorithmFunction(sizeX, sizeY);
     wasDone = false;
-    canvas.width = maze.getCanvasWidth();
-    canvas.height = maze.getCanvasHeight();
+    mazeCanvas.width = maze.getCanvasWidth();
+    mazeCanvas.height = maze.getCanvasHeight();
     refreshDisplay();
   }
 
@@ -110,7 +110,7 @@
   }
 
   function refreshDisplay() {
-    maze.render(canvas);
+    maze.render(mazeCanvas);
     var nowDone = maze.isDone;
     if (nowDone !== wasDone) {
       setEnabled(stepButton, !nowDone);
@@ -121,19 +121,75 @@
   }
 
   function updateStatistics() {
+    var doorsPerRoom = null;
     if (doorsPerRoomCheckbox.checked && maze.isDone) {
-      var doorsPerRoom = {1:0, 2:0, 3:0, 4:0};
+      var doorsPerRoom = [
+        {label: "0", values: []},
+        {label: "1", values: []},
+        {label: "2", values: []},
+        {label: "3", values: []},
+        {label: "4", values: []},
+      ];
       var roomCount = maze.getRoomCount();
       for (var i = 0; i < roomCount; i++) {
         var room = maze.scalarToRoom(i);
         var doorCount = maze.roomToVectors(room.x, room.y).filter(function(vector) {
           return maze.getWallColor(vector.wall) === MazeGenerator.OPEN;
         }).length;
-        doorsPerRoom[doorCount]++;
+        doorsPerRoom[doorCount].values.push(room);
       }
-      doorsPerRoomSpan.textContent = JSON.stringify(doorsPerRoom);
-    } else {
-      doorsPerRoomSpan.textContent = "";
+    }
+    renderHistogram(doorsPerRoomCanvas, doorsPerRoom);
+  }
+
+  function renderHistogram(canvas, data) {
+    if (data == null) {
+      canvas.width = 0;
+      canvas.height = 0;
+      return;
+    }
+    // figure out how big everything's going to be
+    var fontHeight = 12;
+    var font = fontHeight + "px sans-serif";
+    var measuringContext = canvas.getContext("2d");
+    measuringContext.font = font;
+    // this is a guess. as of writing this,
+    // the api to get the height including low-hanging glyphs like "g" are not supported yet
+    // (except for ExperimentalCanvasFeatures in chrome).
+    var moreRealisticTextHeight = fontHeight * 1.2;
+    var maxLabelWidth = 0;
+    var longestPossibleBar = 0;
+    for (var i = 0; i < data.length; i++) {
+      var textMetrics = measuringContext.measureText(data[i].label);
+      // it's too bad this TextMetrics object doesn't have a .height property too.
+      maxLabelWidth = Math.max(maxLabelWidth, textMetrics.width);
+      longestPossibleBar += data[i].values.length;
+    }
+    var graphWidth = Math.max(300, maxLabelWidth + 200);
+    canvas.height = data.length * moreRealisticTextHeight;
+    canvas.width = graphWidth;
+
+    // reget the context after resizing the canvas?
+    var context = canvas.getContext("2d");
+    context.fillStyle = "#ffffff";
+    context.fillRect(0, 0, canvas.width, canvas.height);
+
+    context.font = font;
+    context.textBaseline = "top";
+    context.textAlign = "right";
+    context.strokeStyle = "#000000";
+    for (var i = 0; i < data.length; i++) {
+      context.strokeText(data[i].label, maxLabelWidth, moreRealisticTextHeight * i);
+    }
+    var maxBarLength = graphWidth - maxLabelWidth;
+    context.fillStyle = "#8888ff";
+    context.textAlign = "left";
+    for (var i = 0; i < data.length; i++) {
+      var barWidth = maxBarLength * data[i].values.length / longestPossibleBar;
+      var x = maxLabelWidth;
+      var y = moreRealisticTextHeight * i;
+      context.fillRect(x, y, barWidth, moreRealisticTextHeight);
+      context.strokeText(data[i].values.length, x + 3, y);
     }
   }
 

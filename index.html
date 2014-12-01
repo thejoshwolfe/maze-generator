@@ -26,7 +26,7 @@
     </select>
     Size: <input id="sizeXTextbox" class="numberTextbox" value="30">x<input id="sizeYTextbox" class="numberTextbox" value="30">
     <br>
-    <canvas id="canvas" height=160 width=160></canvas>
+    <canvas id="mazeCanvas" height=160 width=160></canvas>
     <br>
     <button id="goButton">Go</button>
     <button id="stepButton">Step</button>
@@ -37,7 +37,11 @@
       <button id="shaveButton">Shave</button>
     </p>
     <p>Statistics:</p>
-    <p><label><input id="doorsPerRoomCheckbox" type="checkbox">Doors per room:</label> <span id="doorsPerRoomSpan"></span></p>
+    <div>
+      <label><input id="doorsPerRoomCheckbox" type="checkbox">Doors per room:</label>
+      <br>
+      <canvas id="doorsPerRoomCanvas"></canvas>
+    </div>
     <script src="main.js"></script>
   </body>
 </html>
