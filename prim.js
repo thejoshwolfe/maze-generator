@@ -8,12 +8,6 @@ function PrimGenerator(x, y) {
     this.includedRooms[i] = false;
   }
 
-  this.wallsConsidered = [];
-  var wallCount = this.maze.getWallCount();
-  for (var i = 0; i < wallCount; i++) {
-    this.wallsConsidered[i] = false;
-  }
-
   this.transitionVectors = [];
 
   // pick a starting room
@@ -39,7 +33,7 @@ PrimGenerator.prototype.step = function() {
     var vector = util.popRandom(this.transitionVectors);
     if (this.includedRooms[vector.room]) continue;
     // open the door
-    this.maze.setWallColor(vector.wall, Maze.OPEN);
+    this.maze.edgeColors[vector.edge] = Maze.OPEN;
     this.addRoomToMaze(vector.room);
     return;
   }

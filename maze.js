@@ -1,28 +1,21 @@
 
 Maze.FILLED = "#000000";
 Maze.OPEN = "#ffffff";
-function Maze(x, y, initialWallColor, initialRoomColor) {
+Maze.VERTICAL = 0;
+Maze.HORIZONTAL = 1;
+function Maze(x, y, initialEdgeColor, initialRoomColor) {
   this.cellSize = 10;
   this.cellSizeHalf = this.cellSize / 2;
 
   this.sizeX = x;
   this.sizeY = y;
-  this.horizontalWallColors = [];
-  for (var i = 0; i < x; i++) {
-    var ladder = [];
-    for (var j = 0; j < y - 1; j++) {
-      ladder.push(initialWallColor);
-    }
-    this.horizontalWallColors.push(ladder);
+
+  this.edgeColors = [];
+  var edgeCount = this.getEdgeCount();
+  for (var i = 0; i < edgeCount; i++) {
+    this.edgeColors.push(initialEdgeColor);
   }
-  this.verticalWallColors = [];
-  for (var i = 0; i < x - 1; i++) {
-    var pole = [];
-    for (var j = 0; j < y; j++) {
-      pole.push(initialWallColor);
-    }
-    this.verticalWallColors.push(pole);
-  }
+
   this.roomColors = [];
   var roomCount = this.getRoomCount()
   for (var i = 0; i < roomCount; i++) {
@@ -32,41 +25,35 @@ function Maze(x, y, initialWallColor, initialRoomColor) {
   this.isDone = false;
 };
 
-Maze.prototype.getWallCount = function() {
+Maze.prototype.getEdgeCount = function() {
   return this.sizeX * (this.sizeY - 1) + (this.sizeX - 1) * this.sizeY;
 };
-Maze.prototype.wallToScalar = function(wallsArray, i, j) {
-  if (wallsArray === this.horizontalWallColors) {
-    // horizontalWallColors
+Maze.prototype.getEdgeFromLocation = function(orientation, i, j) {
+  if (orientation === Maze.HORIZONTAL) {
+    // horizontal
     return i * (this.sizeY - 1) + j;
   } else {
-    // verticalWallColors
-    var horizontalWallsSize = this.sizeX * (this.sizeY - 1);
-    return horizontalWallsSize + i * this.sizeY + j;
+    // vertical
+    var horizontalEdgeCount = this.sizeX * (this.sizeY - 1);
+    return horizontalEdgeCount + i * this.sizeY + j;
   }
 };
-Maze.prototype.scalarToWall = function(scalar) {
-  var wallsArray;
+Maze.prototype.getEdgeLocation = function(scalar) {
+  var orientation;
   var i;
   var j;
-  var horizontalWallsSize = this.sizeX * (this.sizeY - 1);
-  if (scalar < horizontalWallsSize) {
-    wallsArray = this.horizontalWallColors;
+  var horizontalEdgeCount = this.sizeX * (this.sizeY - 1);
+  if (scalar < horizontalEdgeCount) {
+    orientation = Maze.HORIZONTAL;
     i = Math.floor(scalar / (this.sizeY - 1));
     j = scalar % (this.sizeY - 1);
   } else {
-    scalar -= horizontalWallsSize;
-    wallsArray = this.verticalWallColors;
+    scalar -= horizontalEdgeCount;
+    orientation = Maze.VERTICAL;
     i = Math.floor(scalar / this.sizeY);
     j = scalar % this.sizeY;
   }
-  return {wallsArray:wallsArray, i:i, j:j};
-};
-Maze.prototype.setWallColor = function(wall, color) {
-  wall.wallsArray[wall.i][wall.j] = color;
-};
-Maze.prototype.getWallColor = function(wall, color) {
-  return wall.wallsArray[wall.i][wall.j];
+  return {orientation:orientation, i:i, j:j};
 };
 
 Maze.prototype.getRoomCount = function() {
@@ -89,11 +76,11 @@ Maze.prototype.roomToVectors = function(room) {
     {x:roomLocation.x - 1, y:roomLocation.y + 0},
     {x:roomLocation.x - 0, y:roomLocation.y - 1},
   ];
-  var walls = [
-    {wallsArray:this.verticalWallColors,   i:roomLocation.x + 0, j:roomLocation.y + 0},
-    {wallsArray:this.horizontalWallColors, i:roomLocation.x + 0, j:roomLocation.y + 0},
-    {wallsArray:this.verticalWallColors,   i:roomLocation.x - 1, j:roomLocation.y + 0},
-    {wallsArray:this.horizontalWallColors, i:roomLocation.x + 0, j:roomLocation.y - 1},
+  var edges = [
+    this.getEdgeFromLocation(Maze.VERTICAL,   roomLocation.x + 0, roomLocation.y + 0),
+    this.getEdgeFromLocation(Maze.HORIZONTAL, roomLocation.x + 0, roomLocation.y + 0),
+    this.getEdgeFromLocation(Maze.VERTICAL,   roomLocation.x - 1, roomLocation.y + 0),
+    this.getEdgeFromLocation(Maze.HORIZONTAL, roomLocation.x + 0, roomLocation.y - 1),
   ];
   var vectors = [];
   for (var i = 0; i < 4; i++) {
@@ -102,9 +89,25 @@ Maze.prototype.roomToVectors = function(room) {
     if (neighborLocation.x < 0 || neighborLocation.x >= this.sizeX) continue;
     if (neighborLocation.y < 0 || neighborLocation.y >= this.sizeY) continue;
     var neighbor = this.getRoomFromLocation(neighborLocation.x, neighborLocation.y);
-    vectors.push({wall:walls[i], room:neighbor});
+    vectors.push({edge:edges[i], room:neighbor});
   }
   return vectors;
+};
+Maze.prototype.edgeToRoomPair = function(edge) {
+  var edgeLocation = this.getEdgeLocation(edge);
+  var result = [];
+  var x = edgeLocation.i;
+  var y = edgeLocation.j;
+  result.push(this.getRoomFromLocation(x, y));
+  if (edgeLocation.orientation === Maze.HORIZONTAL) {
+    // horizontal
+    y += 1;
+  } else {
+    // vertical
+    x += 1;
+  }
+  result.push(this.getRoomFromLocation(x, y));
+  return result;
 };
 
 Maze.prototype.getVertexCount = function() {
@@ -118,12 +121,12 @@ Maze.prototype.scalarToVertex = function(vertexScalar) {
 Maze.prototype.vertexToScalar = function(x, y) {
   return (this.sizeY - 1) * x + y;
 };
-Maze.prototype.vertexToWalls = function(x, y) {
+Maze.prototype.vertexToEdges = function(x, y) {
   return [
-    {wallsArray:this.verticalWallColors, i:x, j:y},
-    {wallsArray:this.verticalWallColors, i:x, j:y + 1},
-    {wallsArray:this.horizontalWallColors, i:x, j:y},
-    {wallsArray:this.horizontalWallColors, i:x + 1, j:y},
+    this.getEdgeFromLocation(Maze.VERTICAL, x, y),
+    this.getEdgeFromLocation(Maze.VERTICAL, x, y + 1),
+    this.getEdgeFromLocation(Maze.HORIZONTAL, x, y),
+    this.getEdgeFromLocation(Maze.HORIZONTAL, x + 1, y),
   ];
 };
 Maze.prototype.vertexToBranches = function(x, y) {
@@ -131,62 +134,90 @@ Maze.prototype.vertexToBranches = function(x, y) {
   if (y > 0) {
     branches.push({
       toVertexScalar:this.vertexToScalar(x, y - 1),
-      wall:{wallsArray:this.verticalWallColors, i:x, j:y},
+      edge:this.getEdgeFromLocation(Maze.VERTICAL, x, y),
     });
   }
   if (y < this.sizeY - 2) {
     branches.push({
       toVertexScalar:this.vertexToScalar(x, y + 1),
-      wall:{wallsArray:this.verticalWallColors, i:x, j:y + 1},
+      edge:this.getEdgeFromLocation(Maze.VERTICAL, x, y + 1),
     });
   }
   if (x > 0) {
     branches.push({
       toVertexScalar:this.vertexToScalar(x - 1, y),
-      wall:{wallsArray:this.horizontalWallColors, i:x, j:y},
+      edge:this.getEdgeFromLocation(Maze.HORIZONTAL, x, y),
     });
   }
   if (x < this.sizeX - 2) {
     branches.push({
       toVertexScalar:this.vertexToScalar(x + 1, y),
-      wall:{wallsArray:this.horizontalWallColors, i:x + 1, j:y},
+      edge:this.getEdgeFromLocation(Maze.HORIZONTAL, x + 1, y),
     });
+  }
+  return branches;
+};
+Maze.prototype.getBorderBranches = function() {
+  var branches = [];
+  if (this.sizeY > 1) {
+    for (var x = 0; x < this.sizeX - 2; x++) {
+      branches.push({
+        toVertexScalar:this.vertexToScalar(x, 0),
+        edge:this.getEdgeFromLocation(Maze.VERTICAL, x, 0),
+      });
+      branches.push({
+        toVertexScalar:this.vertexToScalar(x, this.sizeY - 2),
+        edge:this.getEdgeFromLocation(Maze.VERTICAL, x, this.sizeY - 1),
+      });
+    }
+  }
+  if (this.sizeX > 1) {
+    for (var y = 0; y < this.sizeY - 2; y++) {
+      branches.push({
+        toVertexScalar:this.vertexToScalar(0, y),
+        edge:this.getEdgeFromLocation(Maze.HORIZONTAL, 0, y),
+      });
+      branches.push({
+        toVertexScalar:this.vertexToScalar(this.sizeX - 2, y),
+        edge:this.getEdgeFromLocation(Maze.HORIZONTAL, this.sizeX - 1, y),
+      });
+    }
   }
   return branches;
 };
 
 Maze.prototype.shave = function() {
   var self = this;
-  var wallsToDelete = [];
+  var edgesToOpen = [];
   for (var x = 0; x < self.sizeX - 1; x++) {
     for (var y = 0; y < self.sizeY - 1; y++) {
-      var walls = self.vertexToWalls(x, y).filter(function(wall) {
-        return self.getWallColor(wall) === Maze.FILLED;
+      var edges = self.vertexToEdges(x, y).filter(function(edge) {
+        return self.edgeColors[edge] === Maze.FILLED;
       });
-      if (walls.length === 1) {
+      if (edges.length === 1) {
         // this is a hair
-        wallsToDelete.push(walls[0]);
+        edgesToOpen.push(edges[0]);
       }
     }
   }
-  for (var i = 0; i < wallsToDelete.length; i++) {
-    self.setWallColor(wallsToDelete[i], Maze.OPEN);
+  for (var i = 0; i < edgesToOpen.length; i++) {
+    self.edgeColors[edgesToOpen[i]] = Maze.OPEN;
   }
 };
 Maze.prototype.caveIn = function() {
   var self = this;
   var roomsToFill = [];
-  var wallsToClose = [];
+  var edgesToFill = [];
   for (var x = 0; x < self.sizeX; x++) {
     for (var y = 0; y < self.sizeY; y++) {
       var room = self.getRoomFromLocation(x, y);
       var openVectors = self.roomToVectors(x, y).filter(function(vector) {
-        return self.getWallColor(vector.wall) === Maze.OPEN;
+        return self.edgeColors[vector.edge] === Maze.OPEN;
       });
       if (openVectors.length === 1) {
         // this is a dead end
         roomsToFill.push(room);
-        wallsToClose.push(openVectors[0].wall);
+        edgesToFill.push(openVectors[0].edge);
       } else if (openVectors.length === 0 && self.roomColors[room] === Maze.OPEN) {
         // isolated room.
         // this can happen if 3 rooms were the last 3 rooms for the previous caveIn.
@@ -198,8 +229,8 @@ Maze.prototype.caveIn = function() {
   for (var i = 0; i < roomsToFill.length; i++) {
     self.roomColors[roomsToFill[i]] = Maze.FILLED;
   }
-  for (var i = 0; i < wallsToClose.length; i++) {
-    self.setWallColor(wallsToClose[i], Maze.FILLED);
+  for (var i = 0; i < edgesToFill.length; i++) {
+    self.edgeColors[edgesToFill[i]] = Maze.FILLED;
   }
 };
 
@@ -227,13 +258,18 @@ Maze.prototype.render = function(canvas) {
     }
   }
 
-  // walls
-  // horizontalWallColors
+  // edges
+  // horizontal
   for (var i = 0; i < this.sizeX; i++) {
-    var ladder = this.horizontalWallColors[i];
     for (var j = -1; j < this.sizeY - 1 + 1; j++) {
-      var color = ladder[j];
-      if (color == null) color = Maze.FILLED;
+      var color;
+      if (0 <= j && j < this.sizeY - 1) {
+        // in bounds
+        color = this.edgeColors[this.getEdgeFromLocation(Maze.HORIZONTAL, i, j)];
+      } else {
+        // the border
+        color = Maze.FILLED;
+      }
       if (color !== Maze.OPEN) {
         context.strokeStyle = color;
         context.beginPath();
@@ -243,11 +279,17 @@ Maze.prototype.render = function(canvas) {
       }
     }
   }
-  // verticalWallColors
+  // vertical
   for (var i = -1; i < this.sizeX - 1 + 1; i++) {
-    var pole = this.verticalWallColors[i];
     for (var j = 0; j < this.sizeY; j++) {
-      var color = pole == null ? Maze.FILLED : pole[j];
+      var color;
+      if (0 <= i && i < this.sizeX - 1) {
+        // in bounds
+        color = this.edgeColors[this.getEdgeFromLocation(Maze.VERTICAL, i, j)];
+      } else {
+        // the border
+        color = Maze.FILLED;
+      }
       if (color !== Maze.OPEN) {
         context.strokeStyle = color;
         context.beginPath();

@@ -7,39 +7,15 @@ function DepthFirstIvyGenerator(x, y) {
   this.stack = [];
 
   // pick a random starging point around the borders
-  var startingBranches = [];
-  if (this.maze.sizeY > 1) {
-    for (var x = 0; x < this.maze.sizeX - 2; x++) {
-      startingBranches.push({
-        toVertexScalar:this.maze.vertexToScalar(x, 0),
-        wall:{wallsArray:this.maze.verticalWallColors, i:x, j:0},
-      });
-      startingBranches.push({
-        toVertexScalar:this.maze.vertexToScalar(x, this.maze.sizeY - 2),
-        wall:{wallsArray:this.maze.verticalWallColors, i:x, j:this.maze.sizeY - 1},
-      });
-    }
-  }
-  if (this.maze.sizeX > 1) {
-    for (var y = 0; y < this.maze.sizeY - 2; y++) {
-      startingBranches.push({
-        toVertexScalar:this.maze.vertexToScalar(0, y),
-        wall:{wallsArray:this.maze.horizontalWallColors, i:0, j:y},
-      });
-      startingBranches.push({
-        toVertexScalar:this.maze.vertexToScalar(this.maze.sizeX - 2, y),
-        wall:{wallsArray:this.maze.horizontalWallColors, i:this.maze.sizeX - 1, j:y},
-      });
-    }
-  }
-  var startingBranch = util.popRandom(startingBranches);
+  var branches = this.maze.getBorderBranches();
+  var startingBranch = branches[Math.floor(Math.random() * branches.length)];
   this.pushBranch(startingBranch);
 }
 
 DepthFirstIvyGenerator.prototype.pushBranch = function(branch) {
   this.vertexHasBeenVisited[branch.toVertexScalar] = true;
   this.stack.push(branch);
-  this.maze.setWallColor(branch.wall, DepthFirstIvyGenerator.CONSIDERING);
+  this.maze.edgeColors[branch.edge] = DepthFirstIvyGenerator.CONSIDERING;
 };
 
 DepthFirstIvyGenerator.prototype.step = function() {
@@ -57,7 +33,7 @@ DepthFirstIvyGenerator.prototype.step = function() {
     } else {
       // pop branch
       self.stack.pop();
-      self.maze.setWallColor(branch.wall, Maze.FILLED);
+      self.maze.edgeColors[branch.edge] = Maze.FILLED;
     }
     return;
   }

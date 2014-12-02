@@ -34,7 +34,7 @@ DepthFirstSearchGenerator.prototype.step = function() {
     }
     // go in a random direction
     var vector = vectors[Math.floor(Math.random() * vectors.length)];
-    self.maze.setWallColor(vector.wall, Maze.OPEN);
+    self.maze.edgeColors[vector.edge] = Maze.OPEN;
     self.maze.roomColors[vector.room] = DepthFirstSearchGenerator.CONSIDERING;
     self.stack.push(vector.room);
     return;

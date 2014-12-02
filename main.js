@@ -145,7 +145,7 @@
       var roomCount = maze.getRoomCount();
       for (var i = 0; i < roomCount; i++) {
         var doorCount = maze.roomToVectors(i).filter(function(vector) {
-          return maze.getWallColor(vector.wall) === Maze.OPEN;
+          return maze.edgeColors[vector.edge] === Maze.OPEN;
         }).length;
         doorsPerRoom[doorCount].values.push(i);
       }
@@ -164,8 +164,8 @@
       var vertexCount = maze.getVertexCount();
       for (var i = 0; i < vertexCount; i++) {
         var vertex = maze.scalarToVertex(i);
-        var wallCount = maze.vertexToWalls(vertex.x, vertex.y).filter(function(wall) {
-          return maze.getWallColor(wall) === Maze.FILLED;
+        var wallCount = maze.vertexToEdges(vertex.x, vertex.y).filter(function(edge) {
+          return maze.edgeColors[edge] === Maze.FILLED;
         }).length;
         wallsPerVertex[wallCount].values.push(vertex);
       }
