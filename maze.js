@@ -1,7 +1,7 @@
 
-MazeGenerator.FILLED = "#000000";
-MazeGenerator.OPEN = "#ffffff";
-function MazeGenerator(x, y, initialWallColor, initialRoomColor) {
+Maze.FILLED = "#000000";
+Maze.OPEN = "#ffffff";
+function Maze(x, y, initialWallColor, initialRoomColor) {
   this.cellSize = 10;
   this.cellSizeHalf = this.cellSize / 2;
 
@@ -35,10 +35,10 @@ function MazeGenerator(x, y, initialWallColor, initialRoomColor) {
   this.isDone = false;
 };
 
-MazeGenerator.prototype.getWallCount = function() {
+Maze.prototype.getWallCount = function() {
   return this.sizeX * (this.sizeY - 1) + (this.sizeX - 1) * this.sizeY;
 };
-MazeGenerator.prototype.wallToScalar = function(wallsArray, i, j) {
+Maze.prototype.wallToScalar = function(wallsArray, i, j) {
   if (wallsArray === this.horizontalWallColors) {
     // horizontalWallColors
     return i * (this.sizeY - 1) + j;
@@ -48,7 +48,7 @@ MazeGenerator.prototype.wallToScalar = function(wallsArray, i, j) {
     return horizontalWallsSize + i * this.sizeY + j;
   }
 };
-MazeGenerator.prototype.scalarToWall = function(scalar) {
+Maze.prototype.scalarToWall = function(scalar) {
   var wallsArray;
   var i;
   var j;
@@ -65,26 +65,26 @@ MazeGenerator.prototype.scalarToWall = function(scalar) {
   }
   return {wallsArray:wallsArray, i:i, j:j};
 };
-MazeGenerator.prototype.setWallColor = function(wall, color) {
+Maze.prototype.setWallColor = function(wall, color) {
   wall.wallsArray[wall.i][wall.j] = color;
 };
-MazeGenerator.prototype.getWallColor = function(wall, color) {
+Maze.prototype.getWallColor = function(wall, color) {
   return wall.wallsArray[wall.i][wall.j];
 };
 
-MazeGenerator.prototype.getRoomCount = function() {
+Maze.prototype.getRoomCount = function() {
   return this.sizeX * this.sizeY;
 };
-MazeGenerator.prototype.roomToScalar = function(x, y) {
+Maze.prototype.roomToScalar = function(x, y) {
   return this.sizeY * x + y;
 };
-MazeGenerator.prototype.scalarToRoom = function(scalar) {
+Maze.prototype.scalarToRoom = function(scalar) {
   var x = Math.floor(scalar / this.sizeY);
   var y = scalar % this.sizeY;
   return {x:x, y:y};
 };
 
-MazeGenerator.prototype.roomToVectors = function(x, y) {
+Maze.prototype.roomToVectors = function(x, y) {
   var neighbors = [
     {x:x + 1, y:y - 0},
     {x:x + 0, y:y + 1},
@@ -108,18 +108,18 @@ MazeGenerator.prototype.roomToVectors = function(x, y) {
   return vectors;
 };
 
-MazeGenerator.prototype.getVertexCount = function() {
+Maze.prototype.getVertexCount = function() {
   return (this.sizeX - 1) * (this.sizeY - 1);
 };
-MazeGenerator.prototype.scalarToVertex = function(vertexScalar) {
+Maze.prototype.scalarToVertex = function(vertexScalar) {
   var x = Math.floor(vertexScalar / (this.sizeY - 1));
   var y = vertexScalar % (this.sizeY - 1);
   return {x:x, y:y};
 };
-MazeGenerator.prototype.vertexToScalar = function(x, y) {
+Maze.prototype.vertexToScalar = function(x, y) {
   return (this.sizeY - 1) * x + y;
 };
-MazeGenerator.prototype.vertexToWalls = function(x, y) {
+Maze.prototype.vertexToWalls = function(x, y) {
   return [
     {wallsArray:this.verticalWallColors, i:x, j:y},
     {wallsArray:this.verticalWallColors, i:x, j:y + 1},
@@ -127,7 +127,7 @@ MazeGenerator.prototype.vertexToWalls = function(x, y) {
     {wallsArray:this.horizontalWallColors, i:x + 1, j:y},
   ];
 };
-MazeGenerator.prototype.vertexToBranches = function(x, y) {
+Maze.prototype.vertexToBranches = function(x, y) {
   var branches = [];
   if (y > 0) {
     branches.push({
@@ -156,13 +156,13 @@ MazeGenerator.prototype.vertexToBranches = function(x, y) {
   return branches;
 };
 
-MazeGenerator.prototype.shave = function() {
+Maze.prototype.shave = function() {
   var self = this;
   var wallsToDelete = [];
   for (var x = 0; x < self.sizeX - 1; x++) {
     for (var y = 0; y < self.sizeY - 1; y++) {
       var walls = self.vertexToWalls(x, y).filter(function(wall) {
-        return self.getWallColor(wall) === MazeGenerator.FILLED;
+        return self.getWallColor(wall) === Maze.FILLED;
       });
       if (walls.length === 1) {
         // this is a hair
@@ -171,23 +171,23 @@ MazeGenerator.prototype.shave = function() {
     }
   }
   for (var i = 0; i < wallsToDelete.length; i++) {
-    self.setWallColor(wallsToDelete[i], MazeGenerator.OPEN);
+    self.setWallColor(wallsToDelete[i], Maze.OPEN);
   }
 };
-MazeGenerator.prototype.caveIn = function() {
+Maze.prototype.caveIn = function() {
   var self = this;
   var roomsToFill = [];
   var wallsToClose = [];
   for (var x = 0; x < self.sizeX; x++) {
     for (var y = 0; y < self.sizeY; y++) {
       var openVectors = self.roomToVectors(x, y).filter(function(vector) {
-        return self.getWallColor(vector.wall) === MazeGenerator.OPEN;
+        return self.getWallColor(vector.wall) === Maze.OPEN;
       });
       if (openVectors.length === 1) {
         // this is a dead end
         roomsToFill.push({x:x, y:y});
         wallsToClose.push(openVectors[0].wall);
-      } else if (openVectors.length === 0 && self.roomColors[x][y] === MazeGenerator.OPEN) {
+      } else if (openVectors.length === 0 && self.roomColors[x][y] === Maze.OPEN) {
         // isolated room.
         // this can happen if 3 rooms were the last 3 rooms for the previous caveIn.
         // then 1 room is left alone with no doors.
@@ -197,20 +197,20 @@ MazeGenerator.prototype.caveIn = function() {
   }
   for (var i = 0; i < roomsToFill.length; i++) {
     var room = roomsToFill[i];
-    self.roomColors[room.x][room.y] = MazeGenerator.FILLED;
+    self.roomColors[room.x][room.y] = Maze.FILLED;
   }
   for (var i = 0; i < wallsToClose.length; i++) {
-    self.setWallColor(wallsToClose[i], MazeGenerator.FILLED);
+    self.setWallColor(wallsToClose[i], Maze.FILLED);
   }
 };
 
-MazeGenerator.prototype.getCanvasWidth = function() {
+Maze.prototype.getCanvasWidth = function() {
   return (this.sizeX + 1) * this.cellSize;
 };
-MazeGenerator.prototype.getCanvasHeight = function() {
+Maze.prototype.getCanvasHeight = function() {
   return (this.sizeY + 1) * this.cellSize;
 };
-MazeGenerator.prototype.render = function(canvas) {
+Maze.prototype.render = function(canvas) {
   var context = canvas.getContext("2d");
   var cellSize = this.cellSize;
   var cellSizeHalf = this.cellSizeHalf;
@@ -221,7 +221,7 @@ MazeGenerator.prototype.render = function(canvas) {
   for (var x = 0; x < this.sizeX; x++) {
     for (var y = 0; y < this.sizeY; y++) {
       var color = this.roomColors[x][y];
-      if (color !== MazeGenerator.OPEN) {
+      if (color !== Maze.OPEN) {
         context.fillStyle = color;
         context.fillRect(x * cellSize + cellSize - cellSizeHalf, y * cellSize + cellSize - cellSizeHalf, cellSize, cellSize);
       }
@@ -234,8 +234,8 @@ MazeGenerator.prototype.render = function(canvas) {
     var ladder = this.horizontalWallColors[i];
     for (var j = -1; j < this.sizeY - 1 + 1; j++) {
       var color = ladder[j];
-      if (color == null) color = MazeGenerator.FILLED;
-      if (color !== MazeGenerator.OPEN) {
+      if (color == null) color = Maze.FILLED;
+      if (color !== Maze.OPEN) {
         context.strokeStyle = color;
         context.beginPath();
         context.moveTo(i * cellSize + cellSize + cellSizeHalf, j * cellSize + cellSize + cellSizeHalf);
@@ -248,8 +248,8 @@ MazeGenerator.prototype.render = function(canvas) {
   for (var i = -1; i < this.sizeX - 1 + 1; i++) {
     var pole = this.verticalWallColors[i];
     for (var j = 0; j < this.sizeY; j++) {
-      var color = pole == null ? MazeGenerator.FILLED : pole[j];
-      if (color !== MazeGenerator.OPEN) {
+      var color = pole == null ? Maze.FILLED : pole[j];
+      if (color !== Maze.OPEN) {
         context.strokeStyle = color;
         context.beginPath();
         context.moveTo(i * cellSize + cellSize + cellSizeHalf, j * cellSize + cellSize + cellSizeHalf);

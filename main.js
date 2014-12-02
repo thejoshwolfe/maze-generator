@@ -5,8 +5,8 @@
 
   var mazeCanvas = window.document.getElementById("mazeCanvas");
 
-  var stepButton = window.document.getElementById("stepButton");
   var goButton = window.document.getElementById("goButton");
+  var stepButton = window.document.getElementById("stepButton");
   var beDoneButton = window.document.getElementById("beDoneButton");
   var resetButton = window.document.getElementById("resetButton");
 
@@ -25,6 +25,7 @@
     "IvyGenerator": IvyGenerator,
     "DepthFirstIvyGenerator": DepthFirstIvyGenerator,
   };
+  var generator;
   var maze;
 
   var animationInterval = null;
@@ -36,15 +37,16 @@
     var algorithmFunction = algorithms[algorithmCombobox.value];
     var sizeX = parseInt(sizeXTextbox.value, 10) || 1;
     var sizeY = parseInt(sizeYTextbox.value, 10) || 1;
-    if (!refresh && maze != null) {
+    if (!refresh && generator != null) {
       // if nothing's changed, don't reset
-      if (maze.constructor === algorithmFunction &&
+      if (generator.constructor === algorithmFunction &&
           maze.sizeX === sizeX &&
           maze.sizeY === sizeY) {
         return;
       }
     }
-    maze = new algorithmFunction(sizeX, sizeY);
+    generator = new algorithmFunction(sizeX, sizeY);
+    maze = generator.maze;
     mazeCanvas.width = maze.getCanvasWidth();
     mazeCanvas.height = maze.getCanvasHeight();
     refreshDisplay();
@@ -65,7 +67,7 @@
   });
 
   goButton.addEventListener("click", function() {
-    if (maze.isDone) initGenerator(true);
+    if (generator.isDone) initGenerator(true);
     if (animationInterval == null) {
       // go
       animationInterval = setInterval(function() {
@@ -84,9 +86,9 @@
   }
   beDoneButton.addEventListener("click", function() {
     stopIt();
-    if (maze.isDone) initGenerator(true);
-    while (!maze.isDone) {
-      maze.step();
+    if (generator.isDone) initGenerator(true);
+    while (!generator.isDone) {
+      generator.step();
     }
     refreshDisplay();
   });
@@ -111,16 +113,16 @@
   });
 
   function step() {
-    maze.step();
+    generator.step();
     refreshDisplay();
-    if (maze.isDone && animationInterval != null) {
+    if (generator.isDone && animationInterval != null) {
       stopIt();
     }
   }
 
   function refreshDisplay() {
     maze.render(mazeCanvas);
-    var nowDone = maze.isDone;
+    var nowDone = generator.isDone;
     if (nowDone !== wasDone) {
       setEnabled(stepButton, !nowDone);
       setEnabled(shaveButton, nowDone);
@@ -144,7 +146,7 @@
       for (var i = 0; i < roomCount; i++) {
         var room = maze.scalarToRoom(i);
         var doorCount = maze.roomToVectors(room.x, room.y).filter(function(vector) {
-          return maze.getWallColor(vector.wall) === MazeGenerator.OPEN;
+          return maze.getWallColor(vector.wall) === Maze.OPEN;
         }).length;
         doorsPerRoom[doorCount].values.push(room);
       }
@@ -164,7 +166,7 @@
       for (var i = 0; i < vertexCount; i++) {
         var vertex = maze.scalarToVertex(i);
         var wallCount = maze.vertexToWalls(vertex.x, vertex.y).filter(function(wall) {
-          return maze.getWallColor(wall) === MazeGenerator.FILLED;
+          return maze.getWallColor(wall) === Maze.FILLED;
         }).length;
         wallsPerVertex[wallCount].values.push(vertex);
       }

@@ -1,15 +1,15 @@
-util.inherits(PrimGenerator, MazeGenerator);
 function PrimGenerator(x, y) {
-  MazeGenerator.call(this, x, y, MazeGenerator.FILLED, MazeGenerator.FILLED);
+  this.maze = new Maze(x, y, Maze.FILLED, Maze.FILLED);
+  this.isDone = false;
 
   this.includedRooms = [];
-  var roomCount = this.getRoomCount();
+  var roomCount = this.maze.getRoomCount();
   for (var i = 0; i < roomCount; i++) {
     this.includedRooms[i] = false;
   }
 
   this.wallsConsidered = [];
-  var wallCount = this.getWallCount();
+  var wallCount = this.maze.getWallCount();
   for (var i = 0; i < wallCount; i++) {
     this.wallsConsidered[i] = false;
   }
@@ -17,14 +17,14 @@ function PrimGenerator(x, y) {
   this.transitionVectors = [];
 
   // pick a starting room
-  var startingRoom = Math.floor(Math.random() * this.getRoomCount());
+  var startingRoom = Math.floor(Math.random() * this.maze.getRoomCount());
   this.addRoomToMaze(startingRoom);
 }
 
 PrimGenerator.prototype.addRoomToMaze = function(roomScalar) {
   this.includedRooms[roomScalar] = true;
-  var room = this.scalarToRoom(roomScalar);
-  this.roomColors[room.x][room.y] = MazeGenerator.OPEN;
+  var room = this.maze.scalarToRoom(roomScalar);
+  this.maze.roomColors[room.x][room.y] = Maze.OPEN;
   var rooms = [
     {x:room.x + 1, y:room.y - 0},
     {x:room.x + 0, y:room.y + 1},
@@ -32,18 +32,18 @@ PrimGenerator.prototype.addRoomToMaze = function(roomScalar) {
     {x:room.x - 0, y:room.y - 1},
   ];
   var walls = [
-    {wallsArray:this.verticalWallColors,   i:room.x + 0, j:room.y + 0},
-    {wallsArray:this.horizontalWallColors, i:room.x + 0, j:room.y + 0},
-    {wallsArray:this.verticalWallColors,   i:room.x - 1, j:room.y + 0},
-    {wallsArray:this.horizontalWallColors, i:room.x + 0, j:room.y - 1},
+    {wallsArray:this.maze.verticalWallColors,   i:room.x + 0, j:room.y + 0},
+    {wallsArray:this.maze.horizontalWallColors, i:room.x + 0, j:room.y + 0},
+    {wallsArray:this.maze.verticalWallColors,   i:room.x - 1, j:room.y + 0},
+    {wallsArray:this.maze.horizontalWallColors, i:room.x + 0, j:room.y - 1},
   ];
   for (var i = 0; i < 4; i++) {
     var toRoom = rooms[i];
     // bounds check
-    if (toRoom.x < 0 || toRoom.x >= this.sizeX) continue;
-    if (toRoom.y < 0 || toRoom.y >= this.sizeY) continue;
+    if (toRoom.x < 0 || toRoom.x >= this.maze.sizeX) continue;
+    if (toRoom.y < 0 || toRoom.y >= this.maze.sizeY) continue;
     // make sure we're not ceating a loop
-    var toRoomScalar = this.roomToScalar(toRoom.x, toRoom.y);
+    var toRoomScalar = this.maze.roomToScalar(toRoom.x, toRoom.y);
     if (this.includedRooms[toRoomScalar]) continue;
     this.transitionVectors.push({wall:walls[i], toRoomScalar:toRoomScalar});
   }
@@ -54,7 +54,7 @@ PrimGenerator.prototype.step = function() {
     var vector = util.popRandom(this.transitionVectors);
     if (this.includedRooms[vector.toRoomScalar]) continue;
     // open the door
-    this.setWallColor(vector.wall, MazeGenerator.OPEN);
+    this.maze.setWallColor(vector.wall, Maze.OPEN);
     this.addRoomToMaze(vector.toRoomScalar);
     return;
   }

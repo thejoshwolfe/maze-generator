@@ -1,12 +1,11 @@
-util.inherits(KruskalGenerator, MazeGenerator);
-
 KruskalGenerator.CONSIDERING = "#aaaaaa";
 function KruskalGenerator(x, y) {
-  MazeGenerator.call(this, x, y, KruskalGenerator.CONSIDERING, MazeGenerator.OPEN);
+  this.maze = new Maze(x, y, KruskalGenerator.CONSIDERING, Maze.OPEN);
+  this.isDone = false;
 
   // the order in which we try to delete things
   this.edges = [];
-  var wallCount = this.getWallCount();
+  var wallCount = this.maze.getWallCount();
   for (var i = 0; i < wallCount; i++) {
     this.edges.push(i);
   }
@@ -15,7 +14,7 @@ function KruskalGenerator(x, y) {
 
   // map from each room to another room connected to it
   this.roomToParentRoom = [];
-  var roomCount = this.getRoomCount();
+  var roomCount = this.maze.getRoomCount();
   for (var i = 0; i < roomCount; i++) {
     // initially, everyone is alone
     this.roomToParentRoom[i] = i;
@@ -25,15 +24,15 @@ KruskalGenerator.prototype.wallToRoomScalarPair = function(wall) {
   var result = [];
   var x = wall.i;
   var y = wall.j;
-  result.push(this.roomToScalar(x, y));
-  if (wall.wallsArray === this.horizontalWallColors) {
+  result.push(this.maze.roomToScalar(x, y));
+  if (wall.wallsArray === this.maze.horizontalWallColors) {
     // horizontalWallColors
     y += 1;
   } else {
     // verticalWallColors
     x += 1;
   }
-  result.push(this.roomToScalar(x, y));
+  result.push(this.maze.roomToScalar(x, y));
   return result;
 };
 KruskalGenerator.prototype.getParent = function(roomScalar) {
@@ -53,13 +52,13 @@ KruskalGenerator.prototype.mergeRooms = function(roomScalar1, roomScalar2) {
 KruskalGenerator.prototype.step = function() {
   while (this.edgesCursor < this.edges.length) {
     var edge = this.edges[this.edgesCursor++];
-    var wall = this.scalarToWall(edge);
+    var wall = this.maze.scalarToWall(edge);
     var roomPair = this.wallToRoomScalarPair(wall);
     var theMergeHappened = this.mergeRooms(roomPair[0], roomPair[1]);
     if (theMergeHappened) {
-      this.setWallColor(wall, MazeGenerator.OPEN);
+      this.maze.setWallColor(wall, Maze.OPEN);
     } else {
-      this.setWallColor(wall, MazeGenerator.FILLED);
+      this.maze.setWallColor(wall, Maze.FILLED);
     }
     return;
   }
