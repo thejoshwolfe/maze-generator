@@ -157,11 +157,12 @@ MazeGenerator.prototype.vertexToBranches = function(x, y) {
 };
 
 MazeGenerator.prototype.shave = function() {
+  var self = this;
   var wallsToDelete = [];
-  for (var x = 0; x < this.sizeX - 1; x++) {
-    for (var y = 0; y < this.sizeY - 1; y++) {
-      var walls = this.vertexToWalls(x, y).filter(function(wall) {
-        return wall.wallsArray[wall.i][wall.j] === MazeGenerator.FILLED;
+  for (var x = 0; x < self.sizeX - 1; x++) {
+    for (var y = 0; y < self.sizeY - 1; y++) {
+      var walls = self.vertexToWalls(x, y).filter(function(wall) {
+        return self.getWallColor(wall) === MazeGenerator.FILLED;
       });
       if (walls.length === 1) {
         // this is a hair
@@ -170,8 +171,31 @@ MazeGenerator.prototype.shave = function() {
     }
   }
   for (var i = 0; i < wallsToDelete.length; i++) {
-    var wall = wallsToDelete[i];
-    wall.wallsArray[wall.i][wall.j] = MazeGenerator.OPEN;
+    self.setWallColor(wallsToDelete[i], MazeGenerator.OPEN);
+  }
+};
+MazeGenerator.prototype.caveIn = function() {
+  var self = this;
+  var roomsToFill = [];
+  var wallsToClose = [];
+  for (var x = 0; x < self.sizeX; x++) {
+    for (var y = 0; y < self.sizeY; y++) {
+      var openVectors = self.roomToVectors(x, y).filter(function(vector) {
+        return self.getWallColor(vector.wall) === MazeGenerator.OPEN;
+      });
+      if (openVectors.length === 1) {
+        // this is a hair
+        roomsToFill.push({x:x, y:y});
+        wallsToClose.push(openVectors[0].wall);
+      }
+    }
+  }
+  for (var i = 0; i < roomsToFill.length; i++) {
+    var room = roomsToFill[i];
+    self.roomColors[room.x][room.y] = MazeGenerator.FILLED;
+  }
+  for (var i = 0; i < wallsToClose.length; i++) {
+    self.setWallColor(wallsToClose[i], MazeGenerator.FILLED);
   }
 };
 

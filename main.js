@@ -11,6 +11,7 @@
   var resetButton = window.document.getElementById("resetButton");
 
   var shaveButton = window.document.getElementById("shaveButton");
+  var caveInButton = window.document.getElementById("caveInButton");
 
   var doorsPerRoomCheckbox = window.document.getElementById("doorsPerRoomCheckbox");
   var doorsPerRoomCanvas = window.document.getElementById("doorsPerRoomCanvas");
@@ -95,6 +96,10 @@
 
   shaveButton.addEventListener("click", function() {
     maze.shave();
+    refreshDisplay();
+  });
+  caveInButton.addEventListener("click", function() {
+    maze.caveIn();
     refreshDisplay();
   });
 
