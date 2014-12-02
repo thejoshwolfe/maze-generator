@@ -108,6 +108,9 @@ MazeGenerator.prototype.roomToVectors = function(x, y) {
   return vectors;
 };
 
+MazeGenerator.prototype.getVertexCount = function() {
+  return (this.sizeX - 1) * (this.sizeY - 1);
+};
 MazeGenerator.prototype.scalarToVertex = function(vertexScalar) {
   var x = Math.floor(vertexScalar / (this.sizeY - 1));
   var y = vertexScalar % (this.sizeY - 1);

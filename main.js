@@ -14,6 +14,8 @@
 
   var doorsPerRoomCheckbox = window.document.getElementById("doorsPerRoomCheckbox");
   var doorsPerRoomCanvas = window.document.getElementById("doorsPerRoomCanvas");
+  var wallsPerVertexCheckbox = window.document.getElementById("wallsPerVertexCheckbox");
+  var wallsPerVertexCanvas = window.document.getElementById("wallsPerVertexCanvas");
 
   var algorithms = {
     "KruskalGenerator": KruskalGenerator,
@@ -99,6 +101,9 @@
   doorsPerRoomCheckbox.addEventListener("click", function() {
     setTimeout(updateStatistics, 0);
   });
+  wallsPerVertexCheckbox.addEventListener("click", function() {
+    setTimeout(updateStatistics, 0);
+  });
 
   function step() {
     maze.step();
@@ -121,8 +126,8 @@
 
   function updateStatistics() {
     var doorsPerRoom = null;
-    if (doorsPerRoomCheckbox.checked && maze.isDone) {
-      var doorsPerRoom = [
+    if (doorsPerRoomCheckbox.checked) {
+      doorsPerRoom = [
         {label: "0", values: []},
         {label: "1", values: []},
         {label: "2", values: []},
@@ -139,6 +144,26 @@
       }
     }
     renderHistogram(doorsPerRoomCanvas, doorsPerRoom);
+
+    var wallsPerVertex = null;
+    if (wallsPerVertexCheckbox.checked) {
+      wallsPerVertex = [
+        {label: "0", values: []},
+        {label: "1", values: []},
+        {label: "2", values: []},
+        {label: "3", values: []},
+        {label: "4", values: []},
+      ];
+      var vertexCount = maze.getVertexCount();
+      for (var i = 0; i < vertexCount; i++) {
+        var vertex = maze.scalarToVertex(i);
+        var wallCount = maze.vertexToWalls(vertex.x, vertex.y).filter(function(wall) {
+          return maze.getWallColor(wall) === MazeGenerator.FILLED;
+        }).length;
+        wallsPerVertex[wallCount].values.push(vertex);
+      }
+    }
+    renderHistogram(wallsPerVertexCanvas, wallsPerVertex);
   }
 
   function renderHistogram(canvas, data) {
