@@ -42,7 +42,6 @@
       }
     }
     maze = new algorithmFunction(sizeX, sizeY);
-    wasDone = false;
     mazeCanvas.width = maze.getCanvasWidth();
     mazeCanvas.height = maze.getCanvasHeight();
     refreshDisplay();
