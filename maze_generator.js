@@ -184,9 +184,14 @@ MazeGenerator.prototype.caveIn = function() {
         return self.getWallColor(vector.wall) === MazeGenerator.OPEN;
       });
       if (openVectors.length === 1) {
-        // this is a hair
+        // this is a dead end
         roomsToFill.push({x:x, y:y});
         wallsToClose.push(openVectors[0].wall);
+      } else if (openVectors.length === 0 && self.roomColors[x][y] === MazeGenerator.OPEN) {
+        // isolated room.
+        // this can happen if 3 rooms were the last 3 rooms for the previous caveIn.
+        // then 1 room is left alone with no doors.
+        roomsToFill.push({x:x, y:y});
       }
     }
   }
