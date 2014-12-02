@@ -92,4 +92,14 @@ Removes all the "hairs" from the maze, which are walls that connect to a vertex 
 This is a way of simplifying the overall shape of the maze by removing the most petty obstacles.
 
 If this process is repeated, all the walls will eventually shrink back into the maze borders.
-This bears somewhat of a resemblance to the Ivy algorithm in reverse.
+This resembles the Ivy algorithm in reverse.
+
+### Cave In
+
+Fills in any room with only one open door (or no open doors).
+This fills in all the dead ends in the maze.
+
+Since there is no designated entrance and exit, all paths inevitably lead to dead ends.
+This means repeating the Cave In process will eventually fill in the entire maze.
+If there were a designated entrance and exit which were preserved from being filled in,
+repeating this process would leave only a direct path from the entrance to the exit.
