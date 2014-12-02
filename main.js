@@ -144,11 +144,10 @@
       ];
       var roomCount = maze.getRoomCount();
       for (var i = 0; i < roomCount; i++) {
-        var room = maze.scalarToRoom(i);
-        var doorCount = maze.roomToVectors(room.x, room.y).filter(function(vector) {
+        var doorCount = maze.roomToVectors(i).filter(function(vector) {
           return maze.getWallColor(vector.wall) === Maze.OPEN;
         }).length;
-        doorsPerRoom[doorCount].values.push(room);
+        doorsPerRoom[doorCount].values.push(i);
       }
     }
     renderHistogram(doorsPerRoomCanvas, doorsPerRoom);

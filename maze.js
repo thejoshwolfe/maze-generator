@@ -24,12 +24,9 @@ function Maze(x, y, initialWallColor, initialRoomColor) {
     this.verticalWallColors.push(pole);
   }
   this.roomColors = [];
-  for (var x = 0; x < this.sizeX; x++) {
-    var column = [];
-    for (var y = 0; y < this.sizeY; y++) {
-      column.push(initialRoomColor);
-    }
-    this.roomColors.push(column);
+  var roomCount = this.getRoomCount()
+  for (var i = 0; i < roomCount; i++) {
+    this.roomColors[i] = initialRoomColor;
   }
 
   this.isDone = false;
@@ -75,34 +72,36 @@ Maze.prototype.getWallColor = function(wall, color) {
 Maze.prototype.getRoomCount = function() {
   return this.sizeX * this.sizeY;
 };
-Maze.prototype.roomToScalar = function(x, y) {
+Maze.prototype.getRoomFromLocation = function(x, y) {
   return this.sizeY * x + y;
 };
-Maze.prototype.scalarToRoom = function(scalar) {
-  var x = Math.floor(scalar / this.sizeY);
-  var y = scalar % this.sizeY;
+Maze.prototype.getRoomLocation = function(room) {
+  var x = Math.floor(room / this.sizeY);
+  var y = room % this.sizeY;
   return {x:x, y:y};
 };
 
-Maze.prototype.roomToVectors = function(x, y) {
-  var neighbors = [
-    {x:x + 1, y:y - 0},
-    {x:x + 0, y:y + 1},
-    {x:x - 1, y:y + 0},
-    {x:x - 0, y:y - 1},
+Maze.prototype.roomToVectors = function(room) {
+  var roomLocation = this.getRoomLocation(room);
+  var neighborLocations = [
+    {x:roomLocation.x + 1, y:roomLocation.y - 0},
+    {x:roomLocation.x + 0, y:roomLocation.y + 1},
+    {x:roomLocation.x - 1, y:roomLocation.y + 0},
+    {x:roomLocation.x - 0, y:roomLocation.y - 1},
   ];
   var walls = [
-    {wallsArray:this.verticalWallColors,   i:x + 0, j:y + 0},
-    {wallsArray:this.horizontalWallColors, i:x + 0, j:y + 0},
-    {wallsArray:this.verticalWallColors,   i:x - 1, j:y + 0},
-    {wallsArray:this.horizontalWallColors, i:x + 0, j:y - 1},
+    {wallsArray:this.verticalWallColors,   i:roomLocation.x + 0, j:roomLocation.y + 0},
+    {wallsArray:this.horizontalWallColors, i:roomLocation.x + 0, j:roomLocation.y + 0},
+    {wallsArray:this.verticalWallColors,   i:roomLocation.x - 1, j:roomLocation.y + 0},
+    {wallsArray:this.horizontalWallColors, i:roomLocation.x + 0, j:roomLocation.y - 1},
   ];
   var vectors = [];
   for (var i = 0; i < 4; i++) {
-    var neighbor = neighbors[i];
+    var neighborLocation = neighborLocations[i];
     // bounds check
-    if (neighbor.x < 0 || neighbor.x >= this.sizeX) continue;
-    if (neighbor.y < 0 || neighbor.y >= this.sizeY) continue;
+    if (neighborLocation.x < 0 || neighborLocation.x >= this.sizeX) continue;
+    if (neighborLocation.y < 0 || neighborLocation.y >= this.sizeY) continue;
+    var neighbor = this.getRoomFromLocation(neighborLocation.x, neighborLocation.y);
     vectors.push({wall:walls[i], room:neighbor});
   }
   return vectors;
@@ -180,24 +179,24 @@ Maze.prototype.caveIn = function() {
   var wallsToClose = [];
   for (var x = 0; x < self.sizeX; x++) {
     for (var y = 0; y < self.sizeY; y++) {
+      var room = self.getRoomFromLocation(x, y);
       var openVectors = self.roomToVectors(x, y).filter(function(vector) {
         return self.getWallColor(vector.wall) === Maze.OPEN;
       });
       if (openVectors.length === 1) {
         // this is a dead end
-        roomsToFill.push({x:x, y:y});
+        roomsToFill.push(room);
         wallsToClose.push(openVectors[0].wall);
-      } else if (openVectors.length === 0 && self.roomColors[x][y] === Maze.OPEN) {
+      } else if (openVectors.length === 0 && self.roomColors[room] === Maze.OPEN) {
         // isolated room.
         // this can happen if 3 rooms were the last 3 rooms for the previous caveIn.
         // then 1 room is left alone with no doors.
-        roomsToFill.push({x:x, y:y});
+        roomsToFill.push(room);
       }
     }
   }
   for (var i = 0; i < roomsToFill.length; i++) {
-    var room = roomsToFill[i];
-    self.roomColors[room.x][room.y] = Maze.FILLED;
+    self.roomColors[roomsToFill[i]] = Maze.FILLED;
   }
   for (var i = 0; i < wallsToClose.length; i++) {
     self.setWallColor(wallsToClose[i], Maze.FILLED);
@@ -220,7 +219,7 @@ Maze.prototype.render = function(canvas) {
   // roomColors
   for (var x = 0; x < this.sizeX; x++) {
     for (var y = 0; y < this.sizeY; y++) {
-      var color = this.roomColors[x][y];
+      var color = this.roomColors[this.getRoomFromLocation(x, y)];
       if (color !== Maze.OPEN) {
         context.fillStyle = color;
         context.fillRect(x * cellSize + cellSize - cellSizeHalf, y * cellSize + cellSize - cellSizeHalf, cellSize, cellSize);
