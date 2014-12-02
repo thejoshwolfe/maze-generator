@@ -28,7 +28,7 @@
   var maze;
 
   var animationInterval = null;
-  var wasDone = false;
+  var wasDone = true;
 
   initGenerator();
   function initGenerator(refresh) {
@@ -124,6 +124,7 @@
     if (nowDone !== wasDone) {
       setEnabled(stepButton, !nowDone);
       setEnabled(shaveButton, nowDone);
+      setEnabled(caveInButton, nowDone);
     }
     wasDone = nowDone;
     updateStatistics();
