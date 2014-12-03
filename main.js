@@ -163,11 +163,10 @@
       ];
       var vertexCount = maze.getVertexCount();
       for (var i = 0; i < vertexCount; i++) {
-        var vertex = maze.scalarToVertex(i);
-        var wallCount = maze.vertexToEdges(vertex.x, vertex.y).filter(function(edge) {
+        var wallCount = maze.vertexToEdges(i).filter(function(edge) {
           return maze.edgeColors[edge] === Maze.FILLED;
         }).length;
-        wallsPerVertex[wallCount].values.push(vertex);
+        wallsPerVertex[wallCount].values.push(i);
       }
     }
     renderHistogram(wallsPerVertexCanvas, wallsPerVertex);

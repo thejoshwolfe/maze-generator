@@ -13,7 +13,7 @@ function DepthFirstIvyGenerator(x, y) {
 }
 
 DepthFirstIvyGenerator.prototype.pushBranch = function(branch) {
-  this.vertexHasBeenVisited[branch.toVertexScalar] = true;
+  this.vertexHasBeenVisited[branch.vertex] = true;
   this.stack.push(branch);
   this.maze.edgeColors[branch.edge] = DepthFirstIvyGenerator.CONSIDERING;
 };
@@ -22,10 +22,9 @@ DepthFirstIvyGenerator.prototype.step = function() {
   var self = this;
   while (self.stack.length > 0) {
     var branch = self.stack[self.stack.length - 1];
-    var vertex = self.maze.scalarToVertex(branch.toVertexScalar);
-    var branches = self.maze.vertexToBranches(vertex.x, vertex.y);
+    var branches = self.maze.vertexToBranches(branch.vertex);
     var availableBranches = branches.filter(function(branch) {
-      return !self.vertexHasBeenVisited[branch.toVertexScalar];
+      return !self.vertexHasBeenVisited[branch.vertex];
     });
     if (availableBranches.length !== 0) {
       var newBranch = util.popRandom(availableBranches);

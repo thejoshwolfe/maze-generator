@@ -38,20 +38,20 @@ Maze.prototype.getEdgeFromLocation = function(orientation, i, j) {
     return horizontalEdgeCount + i * this.sizeY + j;
   }
 };
-Maze.prototype.getEdgeLocation = function(scalar) {
+Maze.prototype.getEdgeLocation = function(edge) {
   var orientation;
   var i;
   var j;
   var horizontalEdgeCount = this.sizeX * (this.sizeY - 1);
-  if (scalar < horizontalEdgeCount) {
+  if (edge < horizontalEdgeCount) {
     orientation = Maze.HORIZONTAL;
-    i = Math.floor(scalar / (this.sizeY - 1));
-    j = scalar % (this.sizeY - 1);
+    i = Math.floor(edge / (this.sizeY - 1));
+    j = edge % (this.sizeY - 1);
   } else {
-    scalar -= horizontalEdgeCount;
+    edge -= horizontalEdgeCount;
     orientation = Maze.VERTICAL;
-    i = Math.floor(scalar / this.sizeY);
-    j = scalar % this.sizeY;
+    i = Math.floor(edge / this.sizeY);
+    j = edge % this.sizeY;
   }
   return {orientation:orientation, i:i, j:j};
 };
@@ -113,15 +113,18 @@ Maze.prototype.edgeToRoomPair = function(edge) {
 Maze.prototype.getVertexCount = function() {
   return (this.sizeX - 1) * (this.sizeY - 1);
 };
-Maze.prototype.scalarToVertex = function(vertexScalar) {
+Maze.prototype.getVertexLocation = function(vertexScalar) {
   var x = Math.floor(vertexScalar / (this.sizeY - 1));
   var y = vertexScalar % (this.sizeY - 1);
   return {x:x, y:y};
 };
-Maze.prototype.vertexToScalar = function(x, y) {
+Maze.prototype.getVertexFromLocation = function(x, y) {
   return (this.sizeY - 1) * x + y;
 };
-Maze.prototype.vertexToEdges = function(x, y) {
+Maze.prototype.vertexToEdges = function(vertex) {
+  var vertexLocation = this.getVertexLocation(vertex);
+  var x = vertexLocation.x;
+  var y = vertexLocation.y;
   return [
     this.getEdgeFromLocation(Maze.VERTICAL, x, y),
     this.getEdgeFromLocation(Maze.VERTICAL, x, y + 1),
@@ -129,29 +132,32 @@ Maze.prototype.vertexToEdges = function(x, y) {
     this.getEdgeFromLocation(Maze.HORIZONTAL, x + 1, y),
   ];
 };
-Maze.prototype.vertexToBranches = function(x, y) {
+Maze.prototype.vertexToBranches = function(vertex) {
+  var vertexLocation = this.getVertexLocation(vertex);
+  var x = vertexLocation.x;
+  var y = vertexLocation.y;
   var branches = [];
   if (y > 0) {
     branches.push({
-      toVertexScalar:this.vertexToScalar(x, y - 1),
+      vertex:this.getVertexFromLocation(x, y - 1),
       edge:this.getEdgeFromLocation(Maze.VERTICAL, x, y),
     });
   }
   if (y < this.sizeY - 2) {
     branches.push({
-      toVertexScalar:this.vertexToScalar(x, y + 1),
+      vertex:this.getVertexFromLocation(x, y + 1),
       edge:this.getEdgeFromLocation(Maze.VERTICAL, x, y + 1),
     });
   }
   if (x > 0) {
     branches.push({
-      toVertexScalar:this.vertexToScalar(x - 1, y),
+      vertex:this.getVertexFromLocation(x - 1, y),
       edge:this.getEdgeFromLocation(Maze.HORIZONTAL, x, y),
     });
   }
   if (x < this.sizeX - 2) {
     branches.push({
-      toVertexScalar:this.vertexToScalar(x + 1, y),
+      vertex:this.getVertexFromLocation(x + 1, y),
       edge:this.getEdgeFromLocation(Maze.HORIZONTAL, x + 1, y),
     });
   }
@@ -162,11 +168,11 @@ Maze.prototype.getBorderBranches = function() {
   if (this.sizeY > 1) {
     for (var x = 0; x < this.sizeX - 2; x++) {
       branches.push({
-        toVertexScalar:this.vertexToScalar(x, 0),
+        vertex:this.getVertexFromLocation(x, 0),
         edge:this.getEdgeFromLocation(Maze.VERTICAL, x, 0),
       });
       branches.push({
-        toVertexScalar:this.vertexToScalar(x, this.sizeY - 2),
+        vertex:this.getVertexFromLocation(x, this.sizeY - 2),
         edge:this.getEdgeFromLocation(Maze.VERTICAL, x, this.sizeY - 1),
       });
     }
@@ -174,11 +180,11 @@ Maze.prototype.getBorderBranches = function() {
   if (this.sizeX > 1) {
     for (var y = 0; y < this.sizeY - 2; y++) {
       branches.push({
-        toVertexScalar:this.vertexToScalar(0, y),
+        vertex:this.getVertexFromLocation(0, y),
         edge:this.getEdgeFromLocation(Maze.HORIZONTAL, 0, y),
       });
       branches.push({
-        toVertexScalar:this.vertexToScalar(this.sizeX - 2, y),
+        vertex:this.getVertexFromLocation(this.sizeX - 2, y),
         edge:this.getEdgeFromLocation(Maze.HORIZONTAL, this.sizeX - 1, y),
       });
     }
@@ -189,15 +195,14 @@ Maze.prototype.getBorderBranches = function() {
 Maze.prototype.shave = function() {
   var self = this;
   var edgesToOpen = [];
-  for (var x = 0; x < self.sizeX - 1; x++) {
-    for (var y = 0; y < self.sizeY - 1; y++) {
-      var edges = self.vertexToEdges(x, y).filter(function(edge) {
-        return self.edgeColors[edge] === Maze.FILLED;
-      });
-      if (edges.length === 1) {
-        // this is a hair
-        edgesToOpen.push(edges[0]);
-      }
+  var vertexCount = this.getVertexCount();
+  for (var i = 0; i < vertexCount; i++) {
+    var edges = self.vertexToEdges(i).filter(function(edge) {
+      return self.edgeColors[edge] === Maze.FILLED;
+    });
+    if (edges.length === 1) {
+      // this is a hair
+      edgesToOpen.push(edges[0]);
     }
   }
   for (var i = 0; i < edgesToOpen.length; i++) {
@@ -208,22 +213,20 @@ Maze.prototype.caveIn = function() {
   var self = this;
   var roomsToFill = [];
   var edgesToFill = [];
-  for (var x = 0; x < self.sizeX; x++) {
-    for (var y = 0; y < self.sizeY; y++) {
-      var room = self.getRoomFromLocation(x, y);
-      var openVectors = self.roomToVectors(x, y).filter(function(vector) {
-        return self.edgeColors[vector.edge] === Maze.OPEN;
-      });
-      if (openVectors.length === 1) {
-        // this is a dead end
-        roomsToFill.push(room);
-        edgesToFill.push(openVectors[0].edge);
-      } else if (openVectors.length === 0 && self.roomColors[room] === Maze.OPEN) {
-        // isolated room.
-        // this can happen if 3 rooms were the last 3 rooms for the previous caveIn.
-        // then 1 room is left alone with no doors.
-        roomsToFill.push(room);
-      }
+  var roomCount = this.getRoomCount();
+  for (var i = 0; i < roomCount; i++) {
+    var openVectors = self.roomToVectors(i).filter(function(vector) {
+      return self.edgeColors[vector.edge] === Maze.OPEN;
+    });
+    if (openVectors.length === 1) {
+      // this is a dead end
+      roomsToFill.push(i);
+      edgesToFill.push(openVectors[0].edge);
+    } else if (openVectors.length === 0 && self.roomColors[i] === Maze.OPEN) {
+      // isolated room.
+      // this can happen if 3 rooms were the last 3 rooms for the previous caveIn.
+      // then 1 room is left alone with no doors.
+      roomsToFill.push(i);
     }
   }
   for (var i = 0; i < roomsToFill.length; i++) {
