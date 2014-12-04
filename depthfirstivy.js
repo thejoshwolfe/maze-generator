@@ -8,8 +8,13 @@ function DepthFirstIvyGenerator(x, y) {
 
   // pick a random starging point around the borders
   var branches = this.maze.getBorderBranches();
-  var startingBranch = branches[Math.floor(Math.random() * branches.length)];
-  this.pushBranch(startingBranch);
+  if (branches.length > 0) {
+    var startingBranch = branches[Math.floor(Math.random() * branches.length)];
+    this.pushBranch(startingBranch);
+  } else {
+    // 1xn maze
+    this.isDone = true;
+  }
 }
 
 DepthFirstIvyGenerator.prototype.pushBranch = function(branch) {
