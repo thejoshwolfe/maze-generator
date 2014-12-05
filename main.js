@@ -10,6 +10,10 @@
   var beDoneButton = window.document.getElementById("beDoneButton");
   var resetButton = window.document.getElementById("resetButton");
 
+  var longestPathGoButton = window.document.getElementById("longestPathGoButton");
+  var longestPathStepButton = window.document.getElementById("longestPathStepButton");
+  var longestPathBeDoneButton = window.document.getElementById("longestPathBeDoneButton");
+
   var shaveButton = window.document.getElementById("shaveButton");
   var caveInButton = window.document.getElementById("caveInButton");
 
@@ -27,6 +31,8 @@
   };
   var generator;
   var maze;
+  var longestPathFinder;
+  var roomHighlightMaze;
 
   var animationInterval = null;
   var wasDone = true;
@@ -47,6 +53,8 @@
     }
     generator = new algorithmFunction(sizeX, sizeY);
     maze = generator.maze;
+    longestPathFinder = null;
+    roomHighlightMaze = null;
     mazeCanvas.width = maze.getCanvasWidth();
     mazeCanvas.height = maze.getCanvasHeight();
     refreshDisplay();
@@ -96,6 +104,33 @@
     initGenerator(true);
   });
 
+  longestPathBeDoneButton.addEventListener("click", function() {
+    longestPathStep();
+    while (longestPathFinder != null) {
+      longestPathStep();
+    }
+    refreshDisplay();
+  });
+  longestPathStepButton.addEventListener("click", function() {
+    longestPathStep();
+    refreshDisplay();
+  });
+  function longestPathStep() {
+    if (longestPathFinder == null) {
+      longestPathFinder = new LongestPathFinder(maze);
+      roomHighlightMaze = longestPathFinder.roomHighlightMaze;
+    } else {
+      longestPathFinder.step();
+    }
+    var endPoints = longestPathFinder.getEndPoints();
+    if (endPoints == null) return;
+    // done
+    roomHighlightMaze = new Maze(maze.sizeX, maze.sizeY, Maze.OPEN, Maze.OPEN);
+    roomHighlightMaze.roomColors[endPoints[0]] = "#ff4444";
+    roomHighlightMaze.roomColors[endPoints[1]] = "#ff4444";
+    longestPathFinder = null;
+  }
+
   shaveButton.addEventListener("click", function() {
     maze.shave();
     refreshDisplay();
@@ -121,10 +156,16 @@
   }
 
   function refreshDisplay() {
-    maze.render(mazeCanvas);
+    if (roomHighlightMaze != null) {
+      roomHighlightMaze.render(mazeCanvas, true);
+    }
+    maze.render(mazeCanvas, roomHighlightMaze == null);
     var nowDone = generator.isDone;
     if (nowDone !== wasDone) {
       setEnabled(stepButton, !nowDone);
+      setEnabled(longestPathGoButton, nowDone);
+      setEnabled(longestPathStepButton, nowDone);
+      setEnabled(longestPathBeDoneButton, nowDone);
       setEnabled(shaveButton, nowDone);
       setEnabled(caveInButton, nowDone);
     }

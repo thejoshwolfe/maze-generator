@@ -243,12 +243,14 @@ Maze.prototype.getCanvasWidth = function() {
 Maze.prototype.getCanvasHeight = function() {
   return (this.sizeY + 1) * this.cellSize;
 };
-Maze.prototype.render = function(canvas) {
+Maze.prototype.render = function(canvas, clearBackground) {
   var context = canvas.getContext("2d");
   var cellSize = this.cellSize;
   var cellSizeHalf = this.cellSizeHalf;
-  context.fillStyle = "#ffffff";
-  context.fillRect(0, 0, canvas.width, canvas.height);
+  if (clearBackground) {
+    context.fillStyle = "#ffffff";
+    context.fillRect(0, 0, canvas.width, canvas.height);
+  }
 
   // roomColors
   for (var x = 0; x < this.sizeX; x++) {
