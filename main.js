@@ -88,6 +88,8 @@
     if (room == null) return;
     pathFinderPoints.push(room);
     if (pathFinderPoints.length > 2) pathFinderPoints.shift();
+    // double click to clear
+    if (pathFinderPoints.length === 2 && pathFinderPoints[0] === pathFinderPoints[1]) pathFinderPoints = [];
     renderPath();
     mouseIsDown = true;
   });
@@ -111,9 +113,18 @@
   });
 
   function renderPath() {
-    pathHighlightMaze = new Maze(maze.sizeX, maze.sizeY, Maze.OPEN, Maze.OPEN);
-    for (var i = 0; i < pathFinderPoints.length; i++) {
-      pathHighlightMaze.roomColors[pathFinderPoints[i]] = "#ffaaaa";
+    if (pathFinderPoints.length === 0) {
+      pathHighlightMaze = null;
+    } else {
+      pathHighlightMaze = new Maze(maze.sizeX, maze.sizeY, Maze.OPEN, Maze.OPEN);
+      if (pathFinderPoints.length === 1) {
+        pathHighlightMaze.roomColors[pathFinderPoints[0]] = "#ffaaaa";
+      } else {
+        var path = aStarSearch(maze, pathFinderPoints[0], pathFinderPoints[1]);
+        path.forEach(function(room) {
+          pathHighlightMaze.roomColors[room] = "#ffaaaa";
+        });
+      }
     }
 
     refreshDisplay();
