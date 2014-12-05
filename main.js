@@ -36,10 +36,11 @@
 
   var animationInterval = null;
   var wasDone = true;
+  var longestPathAnimationInterval = null;
 
   initGenerator();
   function initGenerator(refresh) {
-    stopIt();
+    stopAnimation();
     var algorithmFunction = algorithms[algorithmCombobox.value];
     var sizeX = parseInt(sizeXTextbox.value, 10) || 1;
     var sizeY = parseInt(sizeYTextbox.value, 10) || 1;
@@ -78,22 +79,20 @@
     if (generator.isDone) initGenerator(true);
     if (animationInterval == null) {
       // go
-      animationInterval = setInterval(function() {
-        step();
-      }, 1);
+      animationInterval = setInterval(step, 1);
       goButton.textContent = "Stop";
     } else {
-      stopIt();
+      stopAnimation();
     }
   });
-  function stopIt() {
+  function stopAnimation() {
     if (animationInterval == null) return;
     clearInterval(animationInterval);
     animationInterval = null;
     goButton.textContent = "Go";
   }
   beDoneButton.addEventListener("click", function() {
-    stopIt();
+    stopAnimation();
     if (generator.isDone) initGenerator(true);
     while (!generator.isDone) {
       generator.step();
@@ -104,6 +103,18 @@
     initGenerator(true);
   });
 
+  longestPathGoButton.addEventListener("click", function() {
+    if (longestPathAnimationInterval == null) {
+      // go
+      longestPathAnimationInterval = setInterval(function() {
+        longestPathStep();
+        refreshDisplay();
+      }, 1);
+      longestPathGoButton.textContent = "Stop";
+    } else {
+      longestPathStopAnimation();
+    }
+  });
   longestPathBeDoneButton.addEventListener("click", function() {
     longestPathStep();
     while (longestPathFinder != null) {
@@ -115,6 +126,12 @@
     longestPathStep();
     refreshDisplay();
   });
+  function longestPathStopAnimation() {
+    if (longestPathAnimationInterval == null) return;
+    clearInterval(longestPathAnimationInterval);
+    longestPathAnimationInterval = null;
+    longestPathGoButton.textContent = "Go";
+  }
   function longestPathStep() {
     if (longestPathFinder == null) {
       longestPathFinder = new LongestPathFinder(maze);
@@ -125,6 +142,7 @@
     var endPoints = longestPathFinder.getEndPoints();
     if (endPoints == null) return;
     // done
+    longestPathStopAnimation();
     roomHighlightMaze = new Maze(maze.sizeX, maze.sizeY, Maze.OPEN, Maze.OPEN);
     roomHighlightMaze.roomColors[endPoints[0]] = "#ff4444";
     roomHighlightMaze.roomColors[endPoints[1]] = "#ff4444";
@@ -151,7 +169,7 @@
     generator.step();
     refreshDisplay();
     if (generator.isDone && animationInterval != null) {
-      stopIt();
+      stopAnimation();
     }
   }
 
