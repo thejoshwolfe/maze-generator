@@ -1,6 +1,5 @@
 
 LongestPathFinder.CANDIDATE_PATH = "#aaaaff";
-LongestPathFinder.SEARCH_HEAD = "#88ff88";
 LongestPathFinder.FAILURE = "#888888";
 function LongestPathFinder(maze) {
   this.maze = maze;
@@ -17,26 +16,15 @@ function LongestPathFinder(maze) {
       var toRoom = vectors[0].room;
       this.traversals.push([fromRoom, toRoom]);
       this.roomHighlightMaze.roomColors[fromRoom] = LongestPathFinder.CANDIDATE_PATH;
-      this.showSearchHead(toRoom);
     }
   }
 }
 
-LongestPathFinder.prototype.showSearchHead = function(room) {
-  if (this.roomHighlightMaze.roomColors[room] === Maze.OPEN) {
-    this.roomHighlightMaze.roomColors[room] = LongestPathFinder.SEARCH_HEAD;
-  }
-};
-LongestPathFinder.prototype.hideSearchHead = function(room) {
-  if (this.roomHighlightMaze.roomColors[room] === LongestPathFinder.SEARCH_HEAD) {
-    this.roomHighlightMaze.roomColors[room] = Maze.OPEN;
-  }
-};
 LongestPathFinder.prototype.getEndPoints = function() {
   if (this.traversals.length !== 2) return null;
   // we know the end points, but we may not have traversed it all yet.
   var path = this.traversals[0];
-  if (this.roomHighlightMaze.roomColors[path[path.length - 1]] === LongestPathFinder.SEARCH_HEAD) return null;
+  if (this.roomHighlightMaze.roomColors[path[path.length - 1]] === Maze.OPEN) return null;
   return [path[0], this.traversals[1][0]];
 };
 
@@ -58,14 +46,12 @@ LongestPathFinder.prototype.step = function() {
       var toRoom = openVectors[0].room;
       path.push(toRoom);
       self.roomHighlightMaze.roomColors[fromRoom] = LongestPathFinder.CANDIDATE_PATH;
-      self.showSearchHead(toRoom);
     } else {
       // die
       path.pop();
       path.forEach(function(room) {
         self.roomHighlightMaze.roomColors[room] = LongestPathFinder.FAILURE;
       });
-      self.hideSearchHead(fromRoom);
       self.traversals.splice(i, 1);
     }
   }
