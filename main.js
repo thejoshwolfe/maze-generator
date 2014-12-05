@@ -32,11 +32,14 @@
   var generator;
   var maze;
   var longestPathFinder;
-  var roomHighlightMaze;
+  var longestPathHighlightMaze;
 
   var animationInterval = null;
   var wasDone = true;
   var longestPathAnimationInterval = null;
+
+  var pathFinderPoints = [];
+  var pathHighlightMaze = null;
 
   initGenerator();
   function initGenerator(refresh) {
@@ -55,7 +58,9 @@
     generator = new algorithmFunction(sizeX, sizeY);
     maze = generator.maze;
     longestPathFinder = null;
-    roomHighlightMaze = null;
+    longestPathHighlightMaze = null;
+    pathHighlightMaze = null;
+    pathFinderPoints = [];
     mazeCanvas.width = maze.getCanvasWidth();
     mazeCanvas.height = maze.getCanvasHeight();
     refreshDisplay();
@@ -70,6 +75,49 @@
   sizeYTextbox.addEventListener("keydown", function() {
     setTimeout(initGenerator, 0);
   });
+
+  var mouseIsDown = false;
+  mazeCanvas.addEventListener("mousedown", function(event) {
+    // only normal left clicking
+    if (event.button !== 0) return;
+    if (event.shiftKey || event.ctrlKey || event.altKey) return;
+    event.preventDefault();
+    // this only works on a done maze
+    if (!generator.isDone) return;
+    var room = maze.getRoomFromPixelLocation(event.offsetX, event.offsetY);
+    if (room == null) return;
+    pathFinderPoints.push(room);
+    if (pathFinderPoints.length > 2) pathFinderPoints.shift();
+    renderPath();
+    mouseIsDown = true;
+  });
+  // why on the window instead of the canvas? see http://stackoverflow.com/questions/5418740/jquery-mouseup-outside-window-possible/5419564#5419564
+  window.addEventListener("mouseup", function() {
+    mouseIsDown = false;
+  });
+  mazeCanvas.addEventListener("mousemove", function(event) {
+    // only consider dragging
+    if (!mouseIsDown) return;
+    // this only works on a done maze
+    if (!generator.isDone) return;
+    var room = maze.getRoomFromPixelLocation(event.offsetX, event.offsetY);
+    if (room == null) return;
+    if (pathFinderPoints.length < 2) {
+      pathFinderPoints.push(room);
+    } else {
+      pathFinderPoints[1] = room;
+    }
+    renderPath();
+  });
+
+  function renderPath() {
+    pathHighlightMaze = new Maze(maze.sizeX, maze.sizeY, Maze.OPEN, Maze.OPEN);
+    for (var i = 0; i < pathFinderPoints.length; i++) {
+      pathHighlightMaze.roomColors[pathFinderPoints[i]] = "#ffaaaa";
+    }
+
+    refreshDisplay();
+  }
 
   stepButton.addEventListener("click", function() {
     step();
@@ -135,7 +183,7 @@
   function longestPathStep() {
     if (longestPathFinder == null) {
       longestPathFinder = new LongestPathFinder(maze);
-      roomHighlightMaze = longestPathFinder.roomHighlightMaze;
+      longestPathHighlightMaze = longestPathFinder.roomHighlightMaze;
     } else {
       longestPathFinder.step();
     }
@@ -143,9 +191,9 @@
     if (endPoints == null) return;
     // done
     longestPathStopAnimation();
-    roomHighlightMaze = new Maze(maze.sizeX, maze.sizeY, Maze.OPEN, Maze.OPEN);
-    roomHighlightMaze.roomColors[endPoints[0]] = "#ff4444";
-    roomHighlightMaze.roomColors[endPoints[1]] = "#ff4444";
+    longestPathHighlightMaze = new Maze(maze.sizeX, maze.sizeY, Maze.OPEN, Maze.OPEN);
+    longestPathHighlightMaze.roomColors[endPoints[0]] = "#ff4444";
+    longestPathHighlightMaze.roomColors[endPoints[1]] = "#ff4444";
     longestPathFinder = null;
   }
 
@@ -174,10 +222,16 @@
   }
 
   function refreshDisplay() {
-    if (roomHighlightMaze != null) {
-      roomHighlightMaze.render(mazeCanvas, true);
+    var context = mazeCanvas.getContext("2d");
+    context.fillStyle = "#ffffff";
+    context.fillRect(0, 0, mazeCanvas.width, mazeCanvas.height);
+    if (longestPathHighlightMaze != null) {
+      longestPathHighlightMaze.render(mazeCanvas);
     }
-    maze.render(mazeCanvas, roomHighlightMaze == null);
+    if (pathHighlightMaze != null) {
+      pathHighlightMaze.render(mazeCanvas);
+    }
+    maze.render(mazeCanvas);
     var nowDone = generator.isDone;
     if (nowDone !== wasDone) {
       setEnabled(stepButton, !nowDone);

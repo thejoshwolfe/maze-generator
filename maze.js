@@ -243,14 +243,10 @@ Maze.prototype.getCanvasWidth = function() {
 Maze.prototype.getCanvasHeight = function() {
   return (this.sizeY + 1) * this.cellSize;
 };
-Maze.prototype.render = function(canvas, clearBackground) {
+Maze.prototype.render = function(canvas) {
   var context = canvas.getContext("2d");
   var cellSize = this.cellSize;
   var cellSizeHalf = this.cellSizeHalf;
-  if (clearBackground) {
-    context.fillStyle = "#ffffff";
-    context.fillRect(0, 0, canvas.width, canvas.height);
-  }
 
   // roomColors
   for (var x = 0; x < this.sizeX; x++) {
@@ -304,4 +300,12 @@ Maze.prototype.render = function(canvas, clearBackground) {
       }
     }
   }
+};
+Maze.prototype.getRoomFromPixelLocation = function(x, y) {
+  var roomX = Math.floor((x - this.cellSizeHalf) / this.cellSize);
+  var roomY = Math.floor((y - this.cellSizeHalf) / this.cellSize);
+  // have to bounds check here, because getRoomFromLocation won't
+  if (roomX < 0 || roomX >= this.sizeX) return null;
+  if (roomY < 0 || roomY >= this.sizeY) return null;
+  return this.getRoomFromLocation(roomX, roomY);
 };
