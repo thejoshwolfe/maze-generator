@@ -17,6 +17,7 @@
 
   var shaveButton = window.document.getElementById("shaveButton");
   var caveInButton = window.document.getElementById("caveInButton");
+  var resetExperimentsButton = window.document.getElementById("resetExperimentsButton");
 
   var doorsPerRoomCheckbox = window.document.getElementById("doorsPerRoomCheckbox");
   var doorsPerRoomCanvas = window.document.getElementById("doorsPerRoomCanvas");
@@ -34,15 +35,17 @@
   var previousAlgorithm;
   var maze;
   var mazeSerialization;
-  var longestPathFinder;
-  var longestPathHighlightMaze;
 
   var animationInterval = null;
   var wasDone = true;
   var longestPathAnimationInterval = null;
 
+  var longestPathFinder;
+  var longestPathHighlightMaze;
   var pathFinderPoints = [];
   var pathHighlightMaze = null;
+
+  var experimentalMode = null;
 
   initGenerator();
   function initGenerator(refresh) {
@@ -64,10 +67,16 @@
   }
   function setMaze(newMaze) {
     maze = newMaze;
+    sizeXTextbox.value = maze.sizeX.toString();
+    sizeYTextbox.value = maze.sizeY.toString();
+
     longestPathFinder = null;
     longestPathHighlightMaze = null;
     pathHighlightMaze = null;
     pathFinderPoints = [];
+
+    experimentalMode = null;
+
     mazeCanvas.width = maze.getCanvasWidth();
     mazeCanvas.height = maze.getCanvasHeight();
     refreshDisplay();
@@ -179,8 +188,6 @@
       var candidateMaze = Maze.fromSerialization(mazeSerializationTextbox.value);
       if (candidateMaze == null) return;
       generator = null;
-      sizeXTextbox.value = candidateMaze.sizeX.toString();
-      sizeYTextbox.value = candidateMaze.sizeY.toString();
       setMaze(candidateMaze);
     }, 0);
   });
@@ -232,12 +239,18 @@
   }
 
   shaveButton.addEventListener("click", function() {
+    experimentalMode = "shave";
     maze.shave();
     refreshDisplay();
   });
   caveInButton.addEventListener("click", function() {
+    experimentalMode = "caveIn";
     maze.caveIn();
     refreshDisplay();
+  });
+  resetExperimentsButton.addEventListener("click", function() {
+    generator = null;
+    setMaze(Maze.fromSerialization(mazeSerialization));
   });
 
   doorsPerRoomCheckbox.addEventListener("click", function() {
@@ -272,11 +285,18 @@
       setEnabled(longestPathGoButton, nowDone);
       setEnabled(longestPathStepButton, nowDone);
       setEnabled(longestPathBeDoneButton, nowDone);
-      setEnabled(shaveButton, nowDone);
-      setEnabled(caveInButton, nowDone);
 
       mazeSerialization = nowDone ? maze.getSerialization() : "";
       mazeSerializationTextbox.value = mazeSerialization;
+    }
+    if (!nowDone) {
+      setEnabled(shaveButton, false);
+      setEnabled(caveInButton, false);
+      setEnabled(resetExperimentsButton, false);
+    } else {
+      setEnabled(shaveButton, experimentalMode == null || experimentalMode === "shave");
+      setEnabled(caveInButton, experimentalMode == null || experimentalMode === "caveIn");
+      setEnabled(resetExperimentsButton, experimentalMode != null);
     }
     wasDone = nowDone;
     updateStatistics();
