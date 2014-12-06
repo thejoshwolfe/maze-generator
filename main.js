@@ -9,6 +9,7 @@
   var stepButton = window.document.getElementById("stepButton");
   var beDoneButton = window.document.getElementById("beDoneButton");
   var resetButton = window.document.getElementById("resetButton");
+  var mazeSerializationTextbox = window.document.getElementById("mazeSerializationTextbox");
 
   var longestPathGoButton = window.document.getElementById("longestPathGoButton");
   var longestPathStepButton = window.document.getElementById("longestPathStepButton");
@@ -30,7 +31,9 @@
     "DepthFirstIvyGenerator": DepthFirstIvyGenerator,
   };
   var generator;
+  var previousAlgorithm;
   var maze;
+  var mazeSerialization;
   var longestPathFinder;
   var longestPathHighlightMaze;
 
@@ -47,16 +50,20 @@
     var algorithmFunction = algorithms[algorithmCombobox.value];
     var sizeX = parseInt(sizeXTextbox.value, 10) || 1;
     var sizeY = parseInt(sizeYTextbox.value, 10) || 1;
-    if (!refresh && generator != null) {
+    if (!refresh) {
       // if nothing's changed, don't reset
-      if (generator.constructor === algorithmFunction &&
+      if (previousAlgorithm === algorithmFunction &&
           maze.sizeX === sizeX &&
           maze.sizeY === sizeY) {
         return;
       }
     }
+    previousAlgorithm = algorithmFunction;
     generator = new algorithmFunction(sizeX, sizeY);
-    maze = generator.maze;
+    setMaze(generator.maze);
+  }
+  function setMaze(newMaze) {
+    maze = newMaze;
     longestPathFinder = null;
     longestPathHighlightMaze = null;
     pathHighlightMaze = null;
@@ -83,7 +90,7 @@
     if (event.shiftKey || event.ctrlKey || event.altKey) return;
     event.preventDefault();
     // this only works on a done maze
-    if (!generator.isDone) return;
+    if (generator != null) return;
     var room = maze.getRoomFromPixelLocation(event.offsetX, event.offsetY);
     if (room == null) return;
     pathFinderPoints.push(room);
@@ -101,7 +108,7 @@
     // only consider dragging
     if (!mouseIsDown) return;
     // this only works on a done maze
-    if (!generator.isDone) return;
+    if (generator != null) return;
     var room = maze.getRoomFromPixelLocation(event.offsetX, event.offsetY);
     if (room == null) return;
     if (pathFinderPoints.length < 2) {
@@ -131,14 +138,18 @@
   }
 
   stepButton.addEventListener("click", function() {
-    step();
+    stepGenerator();
+    refreshDisplay();
   });
 
   goButton.addEventListener("click", function() {
-    if (generator.isDone) initGenerator(true);
+    if (generator == null) initGenerator(true);
     if (animationInterval == null) {
       // go
-      animationInterval = setInterval(step, 1);
+      animationInterval = setInterval(function() {
+        stepGenerator();
+        refreshDisplay();
+      }, 1);
       goButton.textContent = "Stop";
     } else {
       stopAnimation();
@@ -152,14 +163,26 @@
   }
   beDoneButton.addEventListener("click", function() {
     stopAnimation();
-    if (generator.isDone) initGenerator(true);
-    while (!generator.isDone) {
-      generator.step();
+    if (generator == null) initGenerator(true);
+    while (generator != null) {
+      stepGenerator();
     }
     refreshDisplay();
   });
   resetButton.addEventListener("click", function() {
     initGenerator(true);
+  });
+
+  mazeSerializationTextbox.addEventListener("keydown", function() {
+    setTimeout(function() {
+      if (mazeSerialization === mazeSerializationTextbox.value) return;
+      var candidateMaze = Maze.fromSerialization(mazeSerializationTextbox.value);
+      if (candidateMaze == null) return;
+      generator = null;
+      sizeXTextbox.value = candidateMaze.sizeX.toString();
+      sizeYTextbox.value = candidateMaze.sizeY.toString();
+      setMaze(candidateMaze);
+    }, 0);
   });
 
   longestPathGoButton.addEventListener("click", function() {
@@ -224,10 +247,10 @@
     setTimeout(updateStatistics, 0);
   });
 
-  function step() {
+  function stepGenerator() {
     generator.step();
-    refreshDisplay();
-    if (generator.isDone && animationInterval != null) {
+    if (generator.isDone) {
+      generator = null;
       stopAnimation();
     }
   }
@@ -243,7 +266,7 @@
       pathHighlightMaze.render(mazeCanvas);
     }
     maze.render(mazeCanvas);
-    var nowDone = generator.isDone;
+    var nowDone = generator == null;
     if (nowDone !== wasDone) {
       setEnabled(stepButton, !nowDone);
       setEnabled(longestPathGoButton, nowDone);
@@ -251,6 +274,9 @@
       setEnabled(longestPathBeDoneButton, nowDone);
       setEnabled(shaveButton, nowDone);
       setEnabled(caveInButton, nowDone);
+
+      mazeSerialization = nowDone ? maze.getSerialization() : "";
+      mazeSerializationTextbox.value = mazeSerialization;
     }
     wasDone = nowDone;
     updateStatistics();

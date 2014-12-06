@@ -309,3 +309,51 @@ Maze.prototype.getRoomFromPixelLocation = function(x, y) {
   if (roomY < 0 || roomY >= this.sizeY) return null;
   return this.getRoomFromLocation(roomX, roomY);
 };
+
+Maze.hexEncoding = "abcdefghijklmnop";
+Maze.prototype.getSerialization = function() {
+  var bitArray = this.edgeColors.map(function(edge) { return edge === Maze.FILLED ? 1 : 0; });
+  var nibbleAlignment = (bitArray.length + 3) & ~3;
+  // pad
+  for (var i = bitArray.length; i < nibbleAlignment; i++) {
+    bitArray.push(0);
+  }
+  var serialization = this.sizeX + "," + this.sizeY + ",";
+  for (var i = 0; i < bitArray.length; i += 4) {
+    var nibble = (bitArray[i+0] << 3) |
+                 (bitArray[i+1] << 2) |
+                 (bitArray[i+2] << 1) |
+                 (bitArray[i+3] << 0) ;
+    serialization += Maze.hexEncoding[nibble];
+  }
+  return serialization;
+};
+Maze.decodeRegex = new RegExp("^(\\d+),(\\d+),([" + Maze.hexEncoding + "]*)$");
+Maze.fromSerialization = function(string) {
+  var match = Maze.decodeRegex.exec(string);
+  if (match == null) return null;
+  var maze = new Maze(parseInt(match[1]), parseInt(match[2]), Maze.OPEN, Maze.OPEN);
+
+  var zero = Maze.hexEncoding.charCodeAt(0);
+  var bitArray = [];
+  var edgeData = match[3];
+  for (var i = 0; i < edgeData.length; i++) {
+    var nibble = edgeData.charCodeAt(i) - zero;
+    bitArray.push((nibble & 0x8) >> 3);
+    bitArray.push((nibble & 0x4) >> 2);
+    bitArray.push((nibble & 0x2) >> 1);
+    bitArray.push((nibble & 0x1) >> 0);
+  }
+
+  var edgeCount = maze.getEdgeCount();
+  var extraBitCount = bitArray.length - edgeCount;
+  if (!(0 <= extraBitCount && extraBitCount < 4)) return null;
+  for (var i = 0; i < extraBitCount; i++) {
+    bitArray.pop();
+  }
+
+  for (var i = 0; i < edgeCount; i++) {
+    if (bitArray[i] !== 0) maze.edgeColors[i] = Maze.FILLED;
+  }
+  return maze;
+};
