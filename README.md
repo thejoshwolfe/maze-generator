@@ -13,7 +13,7 @@ Given any two rooms anywhere in the grid, there must be one and only one path be
 This means that all rooms are accessible, and there are no loops in the maze.
 
 Any two rooms in the maze could be chosen as the entrance and exit, and there would only be one path between them.
-Choosing an entrance and exit that make the puzzle "fun" is an interesting challenge, but it is outside the scope of this project.
+The Longest Path section below describes one attempt at choosing an entrance and exit that isn't boring.
 
 ## Maze Generating Algorithms
 
