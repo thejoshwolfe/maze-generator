@@ -4,9 +4,6 @@ Maze.OPEN = "#ffffff";
 Maze.VERTICAL = 0;
 Maze.HORIZONTAL = 1;
 function Maze(x, y, initialEdgeColor, initialRoomColor) {
-  this.cellSize = 10;
-  this.cellSizeHalf = this.cellSize / 2;
-
   this.sizeX = x;
   this.sizeY = y;
 
@@ -235,79 +232,6 @@ Maze.prototype.caveIn = function() {
   for (var i = 0; i < edgesToFill.length; i++) {
     self.edgeColors[edgesToFill[i]] = Maze.FILLED;
   }
-};
-
-Maze.prototype.getCanvasWidth = function() {
-  return (this.sizeX + 1) * this.cellSize;
-};
-Maze.prototype.getCanvasHeight = function() {
-  return (this.sizeY + 1) * this.cellSize;
-};
-Maze.prototype.render = function(canvas) {
-  var context = canvas.getContext("2d");
-  var cellSize = this.cellSize;
-  var cellSizeHalf = this.cellSizeHalf;
-
-  // roomColors
-  for (var x = 0; x < this.sizeX; x++) {
-    for (var y = 0; y < this.sizeY; y++) {
-      var color = this.roomColors[this.getRoomFromLocation(x, y)];
-      if (color !== Maze.OPEN) {
-        context.fillStyle = color;
-        context.fillRect(x * cellSize + cellSize - cellSizeHalf, y * cellSize + cellSize - cellSizeHalf, cellSize, cellSize);
-      }
-    }
-  }
-
-  // edges
-  // horizontal
-  for (var i = 0; i < this.sizeX; i++) {
-    for (var j = -1; j < this.sizeY - 1 + 1; j++) {
-      var color;
-      if (0 <= j && j < this.sizeY - 1) {
-        // in bounds
-        color = this.edgeColors[this.getEdgeFromLocation(Maze.HORIZONTAL, i, j)];
-      } else {
-        // the border
-        color = Maze.FILLED;
-      }
-      if (color !== Maze.OPEN) {
-        context.strokeStyle = color;
-        context.beginPath();
-        context.moveTo(i * cellSize + cellSize + cellSizeHalf, j * cellSize + cellSize + cellSizeHalf);
-        context.lineTo(i * cellSize + cellSize - cellSizeHalf, j * cellSize + cellSize + cellSizeHalf);
-        context.stroke();
-      }
-    }
-  }
-  // vertical
-  for (var i = -1; i < this.sizeX - 1 + 1; i++) {
-    for (var j = 0; j < this.sizeY; j++) {
-      var color;
-      if (0 <= i && i < this.sizeX - 1) {
-        // in bounds
-        color = this.edgeColors[this.getEdgeFromLocation(Maze.VERTICAL, i, j)];
-      } else {
-        // the border
-        color = Maze.FILLED;
-      }
-      if (color !== Maze.OPEN) {
-        context.strokeStyle = color;
-        context.beginPath();
-        context.moveTo(i * cellSize + cellSize + cellSizeHalf, j * cellSize + cellSize + cellSizeHalf);
-        context.lineTo(i * cellSize + cellSize + cellSizeHalf, j * cellSize + cellSize - cellSizeHalf);
-        context.stroke();
-      }
-    }
-  }
-};
-Maze.prototype.getRoomFromPixelLocation = function(x, y) {
-  var roomX = Math.floor((x - this.cellSizeHalf) / this.cellSize);
-  var roomY = Math.floor((y - this.cellSizeHalf) / this.cellSize);
-  // have to bounds check here, because getRoomFromLocation won't
-  if (roomX < 0 || roomX >= this.sizeX) return null;
-  if (roomY < 0 || roomY >= this.sizeY) return null;
-  return this.getRoomFromLocation(roomX, roomY);
 };
 
 Maze.hexEncoding = "abcdefghijklmnop";

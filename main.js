@@ -35,6 +35,7 @@
   var previousAlgorithm;
   var maze;
   var mazeSerialization;
+  var mazeRenderer;
 
   var animationInterval = null;
   var wasDone = true;
@@ -77,8 +78,7 @@
 
     experimentalMode = null;
 
-    mazeCanvas.width = maze.getCanvasWidth();
-    mazeCanvas.height = maze.getCanvasHeight();
+    mazeRenderer = new MazeRenderer(mazeCanvas, maze.sizeX, maze.sizeY);
     refreshDisplay();
   }
 
@@ -100,7 +100,7 @@
     event.preventDefault();
     // this only works on a done maze
     if (generator != null) return;
-    var room = maze.getRoomFromPixelLocation(event.offsetX, event.offsetY);
+    var room = getRoomFromMouseEvent(event);
     if (room == null) return;
     pathFinderPoints.push(room);
     if (pathFinderPoints.length > 2) pathFinderPoints.shift();
@@ -118,7 +118,7 @@
     if (!mouseIsDown) return;
     // this only works on a done maze
     if (generator != null) return;
-    var room = maze.getRoomFromPixelLocation(event.offsetX, event.offsetY);
+    var room = getRoomFromMouseEvent(event);
     if (room == null) return;
     if (pathFinderPoints.length < 2) {
       pathFinderPoints.push(room);
@@ -126,6 +126,21 @@
       pathFinderPoints[1] = room;
     }
     renderPath();
+  });
+  function getRoomFromMouseEvent(event) {
+    var roomLocation = mazeRenderer.getRoomLocationFromPixelLocation(event.offsetX, event.offsetY);
+    if (roomLocation == null) return null;
+    return maze.getRoomFromLocation(roomLocation.x, roomLocation.y);
+  }
+  mazeCanvas.addEventListener("wheel", function(event) {
+    if (event.shiftKey || event.ctrlKey || event.altKey) return;
+    var delta = event.deltaY;
+    // only look at vertical scrolling
+    if (delta === 0) return;
+    event.preventDefault();
+
+    mazeRenderer.zoom(delta, event.offsetX, event.offsetY);
+    refreshDisplay();
   });
 
   function renderPath() {
@@ -275,12 +290,12 @@
     context.fillStyle = "#ffffff";
     context.fillRect(0, 0, mazeCanvas.width, mazeCanvas.height);
     if (longestPathHighlightMaze != null) {
-      longestPathHighlightMaze.render(mazeCanvas);
+      mazeRenderer.render(longestPathHighlightMaze);
     }
     if (pathHighlightMaze != null) {
-      pathHighlightMaze.render(mazeCanvas);
+      mazeRenderer.render(pathHighlightMaze);
     }
-    maze.render(mazeCanvas);
+    mazeRenderer.render(maze);
     var nowDone = generator == null;
     if (nowDone !== wasDone) {
       setEnabled(stepButton, !nowDone);
