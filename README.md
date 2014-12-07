@@ -15,7 +15,7 @@ This means that all rooms are accessible, and there are no loops in the maze.
 Any two rooms in the maze could be chosen as the entrance and exit, and there would only be one path between them.
 Choosing an entrance and exit that make the puzzle "fun" is an interesting challenge, but it is outside the scope of this project.
 
-## The Algorithms
+## Maze Generating Algorithms
 
 See Wikipedia's page on [maze generator algorithms](http://en.wikipedia.org/wiki/Maze_generation_algorithm).
 I've also added some of my own here.
@@ -81,6 +81,47 @@ Like the Ivy algorithm above, but instead of randomly selecting among the vertex
 The reasons why this creates a correct maze are the same as for the Ivy algorithm.
 
 This algorithm is to vertexes, walls, and a random starting point on the border as the Depth-First Search algorithm is to rooms, doorways, and a random starting room.
+
+
+## Longest Path
+
+In a randomly generated maze, there isn't always an obvious entrance and exit.
+In most mazes people are used to, the entracne and exit are points on the border of the maze,
+ususally represented as doorways to the outside of the maze.
+Picking an entrance and exit so as to make the maze "fun" is a difficult challenge,
+especially with the constraint that the entrance and exit must be on the border.
+
+In this project, there is an algorithm to find the two points in the maze that have the longest path between them.
+These points are often inside the maze, rather than on the border.
+(In fact, in Depth-First Ivy mazes, the points along the border is always connected by an obvious path,
+so picking entrance and exit points along the border would be very boring.)
+
+The two points this algorithm chooses is the recommended start and end point.
+Picking which of the two is the start and which is the end is outside the scope of this project.
+The path between the points is the same regardless of which direction you travel.
+
+### The Algorithm
+
+The algorithm follows the Cave In experiment below.
+Start a traversal at every dead end (room with only 1 door).
+Step all traversals forward in parallel at every step of the way.
+Each traversal should fill in each room it enters.
+When a traversal encounters a fork in the road, the traversal stops in failure.
+When there's only two traversals left, and they meet, they combine to form the longest path.
+
+The reason this works is that an intersection of paths will be visited multiple times.
+Whichever traversal took the longest path to get to the intersection must have traveled the longest path to get there.
+Therefore, any traversals that arrive too soon are failures.
+
+
+## Path Finding
+
+You can click two points on the maze to find the path between them.
+This uses an [A* search algorithm](http://en.wikipedia.org/wiki/A*_search_algorithm).
+You can also click and drag.
+
+See also [issue 5](https://github.com/thejoshwolfe/maze-generator/issues/5).
+
 
 ## Experiments
 
