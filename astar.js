@@ -16,7 +16,7 @@ function aStarSearch(maze, start, end) {
   });
   visitedRooms[start] = true;
 
-  while (true) {
+  while (nodeHeap.size() > 0) {
     var fromNode = nodeHeap.pop();
     if (fromNode.room === end) {
       // success
@@ -39,6 +39,8 @@ function aStarSearch(maze, start, end) {
       visitedRooms[neighborRoom] = true;
     }
   }
+  // impossible
+  return null;
 
   function heuristic(room) {
     // manhattan distance

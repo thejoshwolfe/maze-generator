@@ -137,9 +137,11 @@
         pathHighlightMaze.roomColors[pathFinderPoints[0]] = "#ffaaaa";
       } else {
         var path = aStarSearch(maze, pathFinderPoints[0], pathFinderPoints[1]);
-        path.forEach(function(room) {
-          pathHighlightMaze.roomColors[room] = "#ffaaaa";
-        });
+        if (path != null) {
+          path.forEach(function(room) {
+            pathHighlightMaze.roomColors[room] = "#ffaaaa";
+          });
+        }
       }
     }
 
@@ -282,18 +284,21 @@
     var nowDone = generator == null;
     if (nowDone !== wasDone) {
       setEnabled(stepButton, !nowDone);
-      setEnabled(longestPathGoButton, nowDone);
-      setEnabled(longestPathStepButton, nowDone);
-      setEnabled(longestPathBeDoneButton, nowDone);
 
       mazeSerialization = nowDone ? maze.getSerialization() : "";
       mazeSerializationTextbox.value = mazeSerialization;
     }
     if (!nowDone) {
+      setEnabled(longestPathGoButton, false);
+      setEnabled(longestPathStepButton, false);
+      setEnabled(longestPathBeDoneButton, false);
       setEnabled(shaveButton, false);
       setEnabled(caveInButton, false);
       setEnabled(resetExperimentsButton, false);
     } else {
+      setEnabled(longestPathGoButton, experimentalMode == null);
+      setEnabled(longestPathStepButton, experimentalMode == null);
+      setEnabled(longestPathBeDoneButton, experimentalMode == null);
       setEnabled(shaveButton, experimentalMode == null || experimentalMode === "shave");
       setEnabled(caveInButton, experimentalMode == null || experimentalMode === "caveIn");
       setEnabled(resetExperimentsButton, experimentalMode != null);
