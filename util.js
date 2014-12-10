@@ -30,4 +30,10 @@ window.util = {
     array[lastIndex] = tmp;
     return array.pop();
   },
+
+  euclideanMod: function(numerator, denominator) {
+    var result = numerator % denominator;
+    if (result < 0) result += denominator;
+    return result;
+  },
 };

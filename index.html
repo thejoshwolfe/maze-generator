@@ -3,7 +3,7 @@
     <title>Maze Generators</title>
     <script src="util.js"></script>
     <script src="maze.js"></script>
-    <script src="mazerenderer.js"></script>
+    <script src="toroidalmaze.js"></script>
     <script src="kruskal.js"></script>
     <script src="prim.js"></script>
     <script src="depthfirstsearch.js"></script>
@@ -30,6 +30,11 @@
   </head>
   <body>
     <p>See <a href="https://github.com/thejoshwolfe/maze-generator">this project on github</a> for more information.</p>
+    <p>
+      Topology:
+      <label><input id="euclideanTopologyButton" type="radio" name="topoloty" checked>Euclidean</label>
+      <label><input id="toroidalTopologyButton" type="radio" name="topoloty">Toroidal</label>
+    </p>
     <select id="algorithmCombobox">
       <option value="DepthFirstSearchGenerator" selected="selected">Depth-First Search</option>
       <option value="PrimGenerator">Prim</option>

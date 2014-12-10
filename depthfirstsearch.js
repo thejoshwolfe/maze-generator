@@ -1,5 +1,5 @@
-function DepthFirstSearchGenerator(x, y) {
-  this.maze = new Maze(x, y, Maze.FILLED, Maze.FILLED);
+function DepthFirstSearchGenerator(topology, sizeX, sizeY) {
+  this.maze = new topology(sizeX, sizeY, Maze.FILLED, Maze.FILLED);
   this.isDone = false;
 
   this.stack = [];

@@ -3,9 +3,9 @@ Maze.FILLED = "#000000";
 Maze.OPEN = "#ffffff";
 Maze.VERTICAL = 0;
 Maze.HORIZONTAL = 1;
-function Maze(x, y, initialEdgeColor, initialRoomColor) {
-  this.sizeX = x;
-  this.sizeY = y;
+function Maze(sizeX, sizeY, initialEdgeColor, initialRoomColor) {
+  this.sizeX = sizeX;
+  this.sizeY = sizeY;
 
   this.edgeColors = [];
   var edgeCount = this.getEdgeCount();
@@ -18,8 +18,6 @@ function Maze(x, y, initialEdgeColor, initialRoomColor) {
   for (var i = 0; i < roomCount; i++) {
     this.roomColors[i] = initialRoomColor;
   }
-
-  this.isDone = false;
 };
 
 Maze.prototype.getEdgeCount = function() {
@@ -110,9 +108,9 @@ Maze.prototype.edgeToRoomPair = function(edge) {
 Maze.prototype.getVertexCount = function() {
   return (this.sizeX - 1) * (this.sizeY - 1);
 };
-Maze.prototype.getVertexLocation = function(vertexScalar) {
-  var x = Math.floor(vertexScalar / (this.sizeY - 1));
-  var y = vertexScalar % (this.sizeY - 1);
+Maze.prototype.getVertexLocation = function(vertex) {
+  var x = Math.floor(vertex / (this.sizeY - 1));
+  var y = vertex % (this.sizeY - 1);
   return {x:x, y:y};
 };
 Maze.prototype.getVertexFromLocation = function(x, y) {
@@ -280,4 +278,80 @@ Maze.fromSerialization = function(string) {
     if (bitArray[i] !== 0) maze.edgeColors[i] = Maze.FILLED;
   }
   return maze;
+};
+
+Maze.prototype.makeRenderer = function(canvas) {
+  return new MazeRenderer(canvas, this.sizeX, this.sizeY);
+};
+
+
+function MazeRenderer(canvas, sizeX, sizeY) {
+  this.canvas = canvas;
+  this.sizeX = sizeX;
+  this.sizeY = sizeY;
+  this.cellSize = 10;
+  canvas.width = (sizeX + 1) * this.cellSize;
+  canvas.height = (sizeY + 1) * this.cellSize;
+}
+
+MazeRenderer.prototype.render = function(maze) {
+  var context = this.canvas.getContext("2d");
+  var cellSize = this.cellSize;
+  var cellSizeHalf = cellSize / 2;
+
+  // roomColors
+  var roomCount = maze.getRoomCount();
+  for (var i = 0; i < roomCount; i++) {
+    var color = maze.roomColors[i];
+    if (color === Maze.OPEN) continue;
+    var roomLocation = maze.getRoomLocation(i);
+    var x = roomLocation.x;
+    var y = roomLocation.y;
+    context.fillStyle = color;
+    context.fillRect(x * cellSize + cellSize - cellSizeHalf, y * cellSize + cellSize - cellSizeHalf, cellSize, cellSize);
+  }
+
+  // edges
+  var edgeCount = maze.getEdgeCount();
+  for (var i = 0; i < edgeCount; i++) {
+    var color = maze.edgeColors[i];
+    if (color === Maze.OPEN) continue;
+    var edgeLocation = maze.getEdgeLocation(i);
+    var x = edgeLocation.i;
+    var y = edgeLocation.j;
+    context.strokeStyle = color;
+    context.beginPath();
+    context.moveTo(x * cellSize + cellSize + cellSizeHalf, y * cellSize + cellSize + cellSizeHalf);
+    if (edgeLocation.orientation === Maze.HORIZONTAL) {
+      context.lineTo(x * cellSize + cellSize - cellSizeHalf, y * cellSize + cellSize + cellSizeHalf);
+    } else {
+      context.lineTo(x * cellSize + cellSize + cellSizeHalf, y * cellSize + cellSize - cellSizeHalf);
+    }
+    context.stroke();
+  }
+
+  // borders
+  context.strokeStyle = Maze.FILLED;
+  context.beginPath();
+  context.moveTo(cellSizeHalf, cellSizeHalf);
+  context.lineTo(cellSizeHalf + this.sizeX * cellSize, cellSizeHalf);
+  context.lineTo(cellSizeHalf + this.sizeX * cellSize, cellSizeHalf + this.sizeY * cellSize);
+  context.lineTo(cellSizeHalf, cellSizeHalf + this.sizeY * cellSize);
+  context.lineTo(cellSizeHalf, cellSizeHalf);
+  context.stroke();
+};
+
+MazeRenderer.prototype.zoom = function(delta, anchorX, anchorY) {
+  // not supported
+  return;
+};
+
+MazeRenderer.prototype.getRoomLocationFromPixelLocation = function(mouseX, mouseY) {
+  var cellSizeHalf = this.cellSize / 2;
+  var x = Math.floor((mouseX - cellSizeHalf) / this.cellSize);
+  var y = Math.floor((mouseY - cellSizeHalf) / this.cellSize);
+  // have to bounds check here, because getRoomFromLocation won't
+  if (x < 0 || x >= this.sizeX) return null;
+  if (y < 0 || y >= this.sizeY) return null;
+  return {x:x, y:y};
 };

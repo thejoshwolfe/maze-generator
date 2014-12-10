@@ -1,6 +1,6 @@
 DepthFirstIvyGenerator.CONSIDERING = "#8888ff";
-function DepthFirstIvyGenerator(x, y) {
-  this.maze = new Maze(x, y, Maze.OPEN, Maze.OPEN);
+function DepthFirstIvyGenerator(topology, sizeX, sizeY) {
+  this.maze = new topology(sizeX, sizeY, Maze.OPEN, Maze.OPEN);
   this.isDone = false;
 
   this.vertexHasBeenVisited = [];

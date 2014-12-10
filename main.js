@@ -1,4 +1,7 @@
 (function() {
+  var euclideanTopologyButton = window.document.getElementById("euclideanTopologyButton");
+  var toroidalTopologyButton = window.document.getElementById("toroidalTopologyButton");
+
   var algorithmCombobox = window.document.getElementById("algorithmCombobox");
   var sizeXTextbox = window.document.getElementById("sizeXTextbox");
   var sizeYTextbox = window.document.getElementById("sizeYTextbox");
@@ -31,6 +34,7 @@
     "IvyGenerator": IvyGenerator,
     "DepthFirstIvyGenerator": DepthFirstIvyGenerator,
   };
+  var previousTopology;
   var generator;
   var previousAlgorithm;
   var maze;
@@ -51,19 +55,22 @@
   initGenerator();
   function initGenerator(refresh) {
     stopAnimation();
+    var topology = euclideanTopologyButton.checked ? Maze : ToroidalMaze;
     var algorithmFunction = algorithms[algorithmCombobox.value];
     var sizeX = parseInt(sizeXTextbox.value, 10) || 1;
     var sizeY = parseInt(sizeYTextbox.value, 10) || 1;
     if (!refresh) {
       // if nothing's changed, don't reset
-      if (previousAlgorithm === algorithmFunction &&
+      if (previousTopology === topology &&
+          previousAlgorithm === algorithmFunction &&
           maze.sizeX === sizeX &&
           maze.sizeY === sizeY) {
         return;
       }
     }
+    previousTopology = topology;
     previousAlgorithm = algorithmFunction;
-    generator = new algorithmFunction(sizeX, sizeY);
+    generator = new algorithmFunction(topology, sizeX, sizeY);
     setMaze(generator.maze);
   }
   function setMaze(newMaze) {
@@ -78,19 +85,18 @@
 
     experimentalMode = null;
 
-    mazeRenderer = new MazeRenderer(mazeCanvas, maze.sizeX, maze.sizeY);
+    mazeRenderer = maze.makeRenderer(mazeCanvas);
     refreshDisplay();
   }
 
-  algorithmCombobox.addEventListener("change", function() {
+  function waitAndInitGenerator() {
     setTimeout(initGenerator, 0);
-  });
-  sizeXTextbox.addEventListener("keydown", function() {
-    setTimeout(initGenerator, 0);
-  });
-  sizeYTextbox.addEventListener("keydown", function() {
-    setTimeout(initGenerator, 0);
-  });
+  }
+  euclideanTopologyButton.addEventListener("click", waitAndInitGenerator);
+  toroidalTopologyButton.addEventListener("click", waitAndInitGenerator);
+  algorithmCombobox.addEventListener("change", waitAndInitGenerator);
+  sizeXTextbox.addEventListener("keydown", waitAndInitGenerator);
+  sizeYTextbox.addEventListener("keydown", waitAndInitGenerator);
 
   var mouseIsDown = false;
   mazeCanvas.addEventListener("mousedown", function(event) {

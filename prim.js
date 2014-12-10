@@ -1,5 +1,5 @@
-function PrimGenerator(x, y) {
-  this.maze = new Maze(x, y, Maze.FILLED, Maze.FILLED);
+function PrimGenerator(topology, sizeX, sizeY) {
+  this.maze = new topology(sizeX, sizeY, Maze.FILLED, Maze.FILLED);
   this.isDone = false;
 
   this.includedRooms = [];
