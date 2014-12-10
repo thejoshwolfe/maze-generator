@@ -144,6 +144,8 @@ function ToroidalMazeRenderer(canvas, sizeX, sizeY) {
   this.sizeX = sizeX;
   this.sizeY = sizeY;
   this.cellSize = 10;
+  this.tessellationOffsetX = this.cellSize/2;
+  this.tessellationOffsetY = this.cellSize/2;
   canvas.width = (sizeX + 1) * this.cellSize;
   canvas.height = (sizeY + 1) * this.cellSize;
 }
@@ -151,7 +153,14 @@ function ToroidalMazeRenderer(canvas, sizeX, sizeY) {
 ToroidalMazeRenderer.prototype.render = function(maze) {
   var context = this.canvas.getContext("2d");
   var cellSize = this.cellSize;
-  var cellSizeHalf = cellSize / 2;
+  var canvasWidth = this.canvas.width;
+  var canvasHeight = this.canvas.height;
+  var tessellationOffsetX = this.tessellationOffsetX;
+  var tessellationOffsetY = this.tessellationOffsetY;
+  var tessellationMinX = -1;
+  var tessellationMaxX = 1;
+  var tessellationMinY = -1;
+  var tessellationMaxY = 1;
 
   // roomColors
   var roomCount = maze.getRoomCount();
@@ -159,10 +168,14 @@ ToroidalMazeRenderer.prototype.render = function(maze) {
     var color = maze.roomColors[i];
     if (color === Maze.OPEN) continue;
     var roomLocation = maze.getRoomLocation(i);
-    var x = roomLocation.x;
-    var y = roomLocation.y;
     context.fillStyle = color;
-    context.fillRect(x * cellSize + cellSize - cellSizeHalf, y * cellSize + cellSize - cellSizeHalf, cellSize, cellSize);
+    for (var tessellationIndexX = tessellationMinX; tessellationIndexX <= tessellationMaxX; tessellationIndexX++) {
+      for (var tessellationIndexY = tessellationMinY; tessellationIndexY <= tessellationMaxY; tessellationIndexY++) {
+        var x = roomLocation.x + tessellationIndexX * this.sizeX;
+        var y = roomLocation.y + tessellationIndexY * this.sizeY;
+        context.fillRect(tessellationOffsetX + x * cellSize, tessellationOffsetY + y * cellSize, cellSize, cellSize);
+      }
+    }
   }
 
   // edges
@@ -171,15 +184,24 @@ ToroidalMazeRenderer.prototype.render = function(maze) {
     var color = maze.edgeColors[i];
     if (color === Maze.OPEN) continue;
     var edgeLocation = maze.getEdgeLocation(i);
-    var x = edgeLocation.i;
-    var y = edgeLocation.j;
     context.strokeStyle = color;
     context.beginPath();
-    context.moveTo(x * cellSize + cellSize + cellSizeHalf, y * cellSize + cellSize + cellSizeHalf);
-    if (edgeLocation.orientation === Maze.HORIZONTAL) {
-      context.lineTo(x * cellSize + cellSize - cellSizeHalf, y * cellSize + cellSize + cellSizeHalf);
-    } else {
-      context.lineTo(x * cellSize + cellSize + cellSizeHalf, y * cellSize + cellSize - cellSizeHalf);
+    for (var tessellationIndexX = tessellationMinX; tessellationIndexX <= tessellationMaxX; tessellationIndexX++) {
+      for (var tessellationIndexY = tessellationMinY; tessellationIndexY <= tessellationMaxY; tessellationIndexY++) {
+        var x = edgeLocation.i + tessellationIndexX * this.sizeX;
+        var y = edgeLocation.j + tessellationIndexY * this.sizeY;
+        var pixelX = tessellationOffsetX + (x + 1) * cellSize;
+        var pixelY = tessellationOffsetY + (y + 1) * cellSize;
+        if (-cellSize <= pixelX && pixelX <= canvasWidth + cellSize &&
+            -cellSize <= pixelY && pixelY <= canvasHeight + cellSize) {
+          if (edgeLocation.orientation === Maze.HORIZONTAL) {
+            context.moveTo(pixelX - cellSize, pixelY);
+          } else {
+            context.moveTo(pixelX, pixelY - cellSize);
+          }
+          context.lineTo(pixelX, pixelY);
+        }
+      }
     }
     context.stroke();
   }
@@ -192,9 +214,8 @@ ToroidalMazeRenderer.prototype.zoom = function(delta, anchorX, anchorY) {
 };
 
 ToroidalMazeRenderer.prototype.getRoomLocationFromPixelLocation = function(mouseX, mouseY) {
-  var cellSizeHalf = this.cellSize / 2;
-  var x = Math.floor((mouseX - cellSizeHalf) / this.cellSize);
-  var y = Math.floor((mouseY - cellSizeHalf) / this.cellSize);
+  var x = Math.floor((mouseX - this.tessellationOffsetX) / this.cellSize);
+  var y = Math.floor((mouseY - this.tessellationOffsetY) / this.cellSize);
   // have to bounds check here, because getRoomFromLocation won't
   if (x < 0 || x >= this.sizeX) return null;
   if (y < 0 || y >= this.sizeY) return null;
