@@ -18,34 +18,34 @@ function ToroidalMaze(sizeX, sizeY, initialEdgeColor, initialRoomColor) {
 ToroidalMaze.prototype.getEdgeCount = function() {
   return 2 * this.sizeX * this.sizeY;
 };
-ToroidalMaze.prototype.getEdgeFromLocation = function(orientation, i, j) {
-  i = util.euclideanMod(i, this.sizeX);
-  j = util.euclideanMod(j, this.sizeY);
+ToroidalMaze.prototype.getEdgeFromLocation = function(orientation, x, y) {
+  x = util.euclideanMod(x, this.sizeX);
+  y = util.euclideanMod(y, this.sizeY);
   if (orientation === Maze.HORIZONTAL) {
     // horizontal
-    return i * this.sizeY + j;
+    return x * this.sizeY + y;
   } else {
     // vertical
     var horizontalEdgeCount = this.sizeX * this.sizeY;
-    return horizontalEdgeCount + i * this.sizeY + j;
+    return horizontalEdgeCount + x * this.sizeY + y;
   }
 };
 ToroidalMaze.prototype.getEdgeLocation = function(edge) {
   var orientation;
-  var i;
-  var j;
+  var x;
+  var y;
   var horizontalEdgeCount = this.sizeX * this.sizeY;
   if (edge < horizontalEdgeCount) {
     orientation = Maze.HORIZONTAL;
-    i = Math.floor(edge / this.sizeY);
-    j = edge % this.sizeY;
+    x = Math.floor(edge / this.sizeY);
+    y = edge % this.sizeY;
   } else {
     edge -= horizontalEdgeCount;
     orientation = Maze.VERTICAL;
-    i = Math.floor(edge / this.sizeY);
-    j = edge % this.sizeY;
+    x = Math.floor(edge / this.sizeY);
+    y = edge % this.sizeY;
   }
-  return {orientation:orientation, i:i, j:j};
+  return {orientation:orientation, x:x, y:y};
 };
 
 ToroidalMaze.prototype.getRoomCount = function() {
@@ -78,8 +78,8 @@ ToroidalMaze.prototype.roomToVectors = function(room) {
 ToroidalMaze.prototype.edgeToRoomPair = function(edge) {
   var edgeLocation = this.getEdgeLocation(edge);
   var result = [];
-  var x = edgeLocation.i;
-  var y = edgeLocation.j;
+  var x = edgeLocation.x;
+  var y = edgeLocation.y;
   result.push(this.getRoomFromLocation(x, y));
   if (edgeLocation.orientation === Maze.HORIZONTAL) {
     // horizontal
@@ -188,8 +188,8 @@ ToroidalMazeRenderer.prototype.render = function(maze) {
     context.beginPath();
     for (var tessellationIndexX = tessellationMinX; tessellationIndexX <= tessellationMaxX; tessellationIndexX++) {
       for (var tessellationIndexY = tessellationMinY; tessellationIndexY <= tessellationMaxY; tessellationIndexY++) {
-        var x = edgeLocation.i + tessellationIndexX * this.sizeX;
-        var y = edgeLocation.j + tessellationIndexY * this.sizeY;
+        var x = edgeLocation.x + tessellationIndexX * this.sizeX;
+        var y = edgeLocation.y + tessellationIndexY * this.sizeY;
         var pixelX = tessellationOffsetX + (x + 1) * cellSize;
         var pixelY = tessellationOffsetY + (y + 1) * cellSize;
         if (-cellSize <= pixelX && pixelX <= canvasWidth + cellSize &&

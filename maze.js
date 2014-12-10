@@ -23,32 +23,32 @@ function Maze(sizeX, sizeY, initialEdgeColor, initialRoomColor) {
 Maze.prototype.getEdgeCount = function() {
   return this.sizeX * (this.sizeY - 1) + (this.sizeX - 1) * this.sizeY;
 };
-Maze.prototype.getEdgeFromLocation = function(orientation, i, j) {
+Maze.prototype.getEdgeFromLocation = function(orientation, x, y) {
   if (orientation === Maze.HORIZONTAL) {
     // horizontal
-    return i * (this.sizeY - 1) + j;
+    return x * (this.sizeY - 1) + y;
   } else {
     // vertical
     var horizontalEdgeCount = this.sizeX * (this.sizeY - 1);
-    return horizontalEdgeCount + i * this.sizeY + j;
+    return horizontalEdgeCount + x * this.sizeY + y;
   }
 };
 Maze.prototype.getEdgeLocation = function(edge) {
   var orientation;
-  var i;
-  var j;
+  var x;
+  var y;
   var horizontalEdgeCount = this.sizeX * (this.sizeY - 1);
   if (edge < horizontalEdgeCount) {
     orientation = Maze.HORIZONTAL;
-    i = Math.floor(edge / (this.sizeY - 1));
-    j = edge % (this.sizeY - 1);
+    x = Math.floor(edge / (this.sizeY - 1));
+    y = edge % (this.sizeY - 1);
   } else {
     edge -= horizontalEdgeCount;
     orientation = Maze.VERTICAL;
-    i = Math.floor(edge / this.sizeY);
-    j = edge % this.sizeY;
+    x = Math.floor(edge / this.sizeY);
+    y = edge % this.sizeY;
   }
-  return {orientation:orientation, i:i, j:j};
+  return {orientation:orientation, x:x, y:y};
 };
 
 Maze.prototype.getRoomCount = function() {
@@ -91,8 +91,8 @@ Maze.prototype.roomToVectors = function(room) {
 Maze.prototype.edgeToRoomPair = function(edge) {
   var edgeLocation = this.getEdgeLocation(edge);
   var result = [];
-  var x = edgeLocation.i;
-  var y = edgeLocation.j;
+  var x = edgeLocation.x;
+  var y = edgeLocation.y;
   result.push(this.getRoomFromLocation(x, y));
   if (edgeLocation.orientation === Maze.HORIZONTAL) {
     // horizontal
@@ -317,8 +317,8 @@ MazeRenderer.prototype.render = function(maze) {
     var color = maze.edgeColors[i];
     if (color === Maze.OPEN) continue;
     var edgeLocation = maze.getEdgeLocation(i);
-    var x = edgeLocation.i;
-    var y = edgeLocation.j;
+    var x = edgeLocation.x;
+    var y = edgeLocation.y;
     context.strokeStyle = color;
     context.beginPath();
     context.moveTo(x * cellSize + cellSize + cellSizeHalf, y * cellSize + cellSize + cellSizeHalf);
