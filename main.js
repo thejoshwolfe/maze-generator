@@ -17,6 +17,7 @@
   var longestPathGoButton = window.document.getElementById("longestPathGoButton");
   var longestPathStepButton = window.document.getElementById("longestPathStepButton");
   var longestPathBeDoneButton = window.document.getElementById("longestPathBeDoneButton");
+  var longestPathResetButton = window.document.getElementById("longestPathResetButton");
 
   var shaveButton = window.document.getElementById("shaveButton");
   var caveInButton = window.document.getElementById("caveInButton");
@@ -241,6 +242,10 @@
       longestPathStopAnimation();
     }
   });
+  longestPathStepButton.addEventListener("click", function() {
+    longestPathStep();
+    refreshDisplay();
+  });
   longestPathBeDoneButton.addEventListener("click", function() {
     longestPathStep();
     while (longestPathFinder != null) {
@@ -248,8 +253,10 @@
     }
     refreshDisplay();
   });
-  longestPathStepButton.addEventListener("click", function() {
-    longestPathStep();
+  longestPathResetButton.addEventListener("click", function() {
+    longestPathStopAnimation();
+    longestPathFinder = null;
+    longestPathHighlightMaze = null;
     refreshDisplay();
   });
   function longestPathStopAnimation() {
@@ -328,6 +335,7 @@
       setEnabled(longestPathGoButton, false);
       setEnabled(longestPathStepButton, false);
       setEnabled(longestPathBeDoneButton, false);
+      setEnabled(longestPathResetButton, false);
       setEnabled(shaveButton, false);
       setEnabled(caveInButton, false);
       setEnabled(resetExperimentsButton, false);
@@ -335,6 +343,7 @@
       setEnabled(longestPathGoButton, experimentalMode == null);
       setEnabled(longestPathStepButton, experimentalMode == null);
       setEnabled(longestPathBeDoneButton, experimentalMode == null);
+      setEnabled(longestPathResetButton, longestPathHighlightMaze != null);
       setEnabled(shaveButton, experimentalMode == null || experimentalMode === "shave");
       setEnabled(caveInButton, experimentalMode == null || experimentalMode === "caveIn");
       setEnabled(resetExperimentsButton, experimentalMode != null);
