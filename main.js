@@ -98,55 +98,66 @@
   sizeXTextbox.addEventListener("keydown", waitAndInitGenerator);
   sizeYTextbox.addEventListener("keydown", waitAndInitGenerator);
 
-  var mouseIsDown = false;
+  var heldDownMouseButton = null;
+  var scrollDragAnchorX;
+  var scrollDragAnchorY;
   mazeCanvas.addEventListener("mousedown", function(event) {
     // only normal left clicking
-    if (event.button !== 0) return;
     if (event.shiftKey || event.ctrlKey || event.altKey) return;
+    heldDownMouseButton = event.button;
     event.preventDefault();
-    // this only works on a done maze
-    if (generator != null) return;
-    var room = getRoomFromMouseEvent(event);
-    if (room == null) return;
-    pathFinderPoints.push(room);
-    if (pathFinderPoints.length > 2) pathFinderPoints.shift();
-    // double click to clear
-    if (pathFinderPoints.length === 2 && pathFinderPoints[0] === pathFinderPoints[1]) pathFinderPoints = [];
-    renderPath();
-    mouseIsDown = true;
+    if (heldDownMouseButton === 0) {
+      // left click
+      // this only works on a done maze
+      if (generator != null) return;
+      var room = getRoomFromMouseEvent(event);
+      if (room == null) return;
+      pathFinderPoints.push(room);
+      if (pathFinderPoints.length > 2) pathFinderPoints.shift();
+      // double click to clear
+      if (pathFinderPoints.length === 2 && pathFinderPoints[0] === pathFinderPoints[1]) pathFinderPoints = [];
+      renderPath();
+    } else {
+      // right or middle click
+      scrollDragAnchorX = event.offsetX;
+      scrollDragAnchorY = event.offsetY;
+    }
   });
   // why on the window instead of the canvas? see http://stackoverflow.com/questions/5418740/jquery-mouseup-outside-window-possible/5419564#5419564
   window.addEventListener("mouseup", function() {
-    mouseIsDown = false;
+    heldDownMouseButton = null;
   });
   mazeCanvas.addEventListener("mousemove", function(event) {
-    // only consider dragging
-    if (!mouseIsDown) return;
-    // this only works on a done maze
-    if (generator != null) return;
-    var room = getRoomFromMouseEvent(event);
-    if (room == null) return;
-    if (pathFinderPoints.length < 2) {
-      pathFinderPoints.push(room);
-    } else {
-      pathFinderPoints[1] = room;
+    if (heldDownMouseButton === 0) {
+      // left-click drag
+      // this only works on a done maze
+      if (generator != null) return;
+      var room = getRoomFromMouseEvent(event);
+      if (room == null) return;
+      if (pathFinderPoints.length < 2) {
+        pathFinderPoints.push(room);
+      } else {
+        pathFinderPoints[1] = room;
+      }
+      renderPath();
+    } else if (heldDownMouseButton === 2) {
+      // right- or middle-click drag
+      var deltaX = event.offsetX - scrollDragAnchorX;
+      var deltaY = event.offsetY - scrollDragAnchorY;
+      scrollDragAnchorX = event.offsetX;
+      scrollDragAnchorY = event.offsetY;
+      mazeRenderer.scroll(deltaX, deltaY);
+      refreshDisplay();
     }
-    renderPath();
   });
   function getRoomFromMouseEvent(event) {
     var roomLocation = mazeRenderer.getRoomLocationFromPixelLocation(event.offsetX, event.offsetY);
     if (roomLocation == null) return null;
     return maze.getRoomFromLocation(roomLocation.x, roomLocation.y);
   }
-  mazeCanvas.addEventListener("wheel", function(event) {
+  mazeCanvas.addEventListener("contextmenu", function(event) {
     if (event.shiftKey || event.ctrlKey || event.altKey) return;
-    var delta = event.deltaY;
-    // only look at vertical scrolling
-    if (delta === 0) return;
     event.preventDefault();
-
-    mazeRenderer.zoom(delta, event.offsetX, event.offsetY);
-    refreshDisplay();
   });
 
   function renderPath() {

@@ -208,15 +208,14 @@ ToroidalMazeRenderer.prototype.render = function(maze) {
   }
 };
 
-ToroidalMazeRenderer.prototype.zoom = function(delta, anchorX, anchorY) {
-  return; // TODO
-  var newCellSize = this.cellSize * Math.pow(2, Math.sign(delta)/-10);
-  this.cellSize = Math.max(5, Math.min(newCellSize, 20));
+ToroidalMazeRenderer.prototype.scroll = function(deltaX, deltaY) {
+  this.tessellationOffsetX = util.euclideanMod(this.tessellationOffsetX + deltaX, this.sizeX * this.cellSize);
+  this.tessellationOffsetY = util.euclideanMod(this.tessellationOffsetY + deltaY, this.sizeY * this.cellSize);
 };
 
 ToroidalMazeRenderer.prototype.getRoomLocationFromPixelLocation = function(mouseX, mouseY) {
-  var x = Math.floor((mouseX - this.tessellationOffsetX) / this.cellSize);
-  var y = Math.floor((mouseY - this.tessellationOffsetY) / this.cellSize);
+  var x = Math.floor(util.euclideanMod(mouseX - this.tessellationOffsetX, this.sizeX * this.cellSize) / this.cellSize);
+  var y = Math.floor(util.euclideanMod(mouseY - this.tessellationOffsetY, this.sizeY * this.cellSize) / this.cellSize);
   // have to bounds check here, because getRoomFromLocation won't
   if (x < 0 || x >= this.sizeX) return null;
   if (y < 0 || y >= this.sizeY) return null;

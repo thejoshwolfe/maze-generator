@@ -234,13 +234,21 @@ Maze.prototype.caveIn = function() {
 
 Maze.hexEncoding = "abcdefghijklmnop";
 Maze.prototype.getSerialization = function() {
-  var bitArray = this.edgeColors.map(function(edge) { return edge === Maze.FILLED ? 1 : 0; });
+  var self = this;
+  var bitArray = self.edgeColors.map(function(edge) { return edge === Maze.FILLED ? 1 : 0; });
   var nibbleAlignment = (bitArray.length + 3) & ~3;
   // pad
   for (var i = bitArray.length; i < nibbleAlignment; i++) {
     bitArray.push(0);
   }
-  var serialization = this.sizeX + "," + this.sizeY + ",";
+  var topologySerialization = (function() {
+    switch (self.constructor) {
+      case Maze: return "euclidean";
+      case ToroidalMaze: return "toroidal";
+    }
+    throw new Error();
+  })();
+  var serialization = topologySerialization + "," + self.sizeX + "," + self.sizeY + ",";
   for (var i = 0; i < bitArray.length; i += 4) {
     var nibble = (bitArray[i+0] << 3) |
                  (bitArray[i+1] << 2) |
@@ -250,15 +258,25 @@ Maze.prototype.getSerialization = function() {
   }
   return serialization;
 };
-Maze.decodeRegex = new RegExp("^(\\d+),(\\d+),([" + Maze.hexEncoding + "]*)$");
+Maze.decodeRegex = new RegExp("^(euclidean|toroidal),(\\d+),(\\d+),([" + Maze.hexEncoding + "]*)$");
 Maze.fromSerialization = function(string) {
   var match = Maze.decodeRegex.exec(string);
   if (match == null) return null;
-  var maze = new Maze(parseInt(match[1]), parseInt(match[2]), Maze.OPEN, Maze.OPEN);
+  var topologySerialization = match[1];
+  var sizeX = parseInt(match[2]);
+  var sizeY = parseInt(match[3]);
+  var edgeData = match[4];
+  var topology = (function() {
+    switch (topologySerialization) {
+      case "euclidean": return Maze;
+      case "toroidal": return ToroidalMaze;
+    }
+    throw new Error();
+  })();
+  var maze = new topology(sizeX, sizeY, Maze.OPEN, Maze.OPEN);
 
   var zero = Maze.hexEncoding.charCodeAt(0);
   var bitArray = [];
-  var edgeData = match[3];
   for (var i = 0; i < edgeData.length; i++) {
     var nibble = edgeData.charCodeAt(i) - zero;
     bitArray.push((nibble & 0x8) >> 3);
@@ -341,9 +359,8 @@ MazeRenderer.prototype.render = function(maze) {
   context.stroke();
 };
 
-MazeRenderer.prototype.zoom = function(delta, anchorX, anchorY) {
+MazeRenderer.prototype.scroll = function(deltaX, deltaY) {
   // not supported
-  return;
 };
 
 MazeRenderer.prototype.getRoomLocationFromPixelLocation = function(mouseX, mouseY) {
