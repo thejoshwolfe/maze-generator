@@ -263,13 +263,14 @@
       longestPathFinder.step();
     }
     var endPoints = longestPathFinder.getEndPoints();
-    if (endPoints == null) return;
+    if (endPoints === LongestPathFinder.NOT_DONE_YET) return;
     // done
     longestPathStopAnimation();
+    longestPathFinder = null;
+    if (endPoints === LongestPathFinder.IMPOSSIBLE) return;
     longestPathHighlightMaze = new Maze(maze.sizeX, maze.sizeY, Maze.OPEN, Maze.OPEN);
     longestPathHighlightMaze.roomColors[endPoints[0]] = "#ff4444";
     longestPathHighlightMaze.roomColors[endPoints[1]] = "#ff4444";
-    longestPathFinder = null;
   }
 
   shaveButton.addEventListener("click", function() {

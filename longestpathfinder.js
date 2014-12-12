@@ -20,12 +20,24 @@ function LongestPathFinder(maze) {
   }
 }
 
+LongestPathFinder.NOT_DONE_YET = "NOT_DONE_YET";
+LongestPathFinder.IMPOSSIBLE = "IMPOSSIBLE";
 LongestPathFinder.prototype.getEndPoints = function() {
-  if (this.traversals.length !== 2) return null;
-  // we know the end points, but we may not have traversed it all yet.
-  var path = this.traversals[0];
-  if (this.roomHighlightMaze.roomColors[path[path.length - 1]] === Maze.OPEN) return null;
-  return [path[0], this.traversals[1][0]];
+  if (this.traversals.length === 2) {
+    // we know the end points
+    var path = this.traversals[0];
+    if (this.roomHighlightMaze.roomColors[path[path.length - 1]] === Maze.OPEN) {
+      // they haven't met yet
+      return LongestPathFinder.NOT_DONE_YET;
+    }
+    return [path[0], this.traversals[1][0]];
+  }
+  if (this.traversals.length > 0) {
+    // stuff is still going on
+    return LongestPathFinder.NOT_DONE_YET;
+  }
+  // 0 traversals? something's gone wrong
+  return LongestPathFinder.IMPOSSIBLE;
 };
 
 LongestPathFinder.prototype.step = function() {
