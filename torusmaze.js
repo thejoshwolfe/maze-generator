@@ -1,5 +1,5 @@
-util.inherits(ToroidalMaze, Maze);
-function ToroidalMaze(sizeX, sizeY, initialEdgeColor, initialRoomColor) {
+util.inherits(TorusMaze, Maze);
+function TorusMaze(sizeX, sizeY, initialEdgeColor, initialRoomColor) {
   this.sizeX = sizeX;
   this.sizeY = sizeY;
 
@@ -16,10 +16,10 @@ function ToroidalMaze(sizeX, sizeY, initialEdgeColor, initialRoomColor) {
   }
 }
 
-ToroidalMaze.prototype.getEdgeCount = function() {
+TorusMaze.prototype.getEdgeCount = function() {
   return 2 * this.sizeX * this.sizeY;
 };
-ToroidalMaze.prototype.getEdgeFromLocation = function(orientation, x, y) {
+TorusMaze.prototype.getEdgeFromLocation = function(orientation, x, y) {
   x = util.euclideanMod(x, this.sizeX);
   y = util.euclideanMod(y, this.sizeY);
   if (orientation === Maze.HORIZONTAL) {
@@ -31,7 +31,7 @@ ToroidalMaze.prototype.getEdgeFromLocation = function(orientation, x, y) {
     return horizontalEdgeCount + x * this.sizeY + y;
   }
 };
-ToroidalMaze.prototype.getEdgeLocation = function(edge) {
+TorusMaze.prototype.getEdgeLocation = function(edge) {
   var orientation;
   var x;
   var y;
@@ -49,21 +49,21 @@ ToroidalMaze.prototype.getEdgeLocation = function(edge) {
   return {orientation:orientation, x:x, y:y};
 };
 
-ToroidalMaze.prototype.getRoomCount = function() {
+TorusMaze.prototype.getRoomCount = function() {
   return this.sizeX * this.sizeY;
 };
-ToroidalMaze.prototype.getRoomFromLocation = function(x, y) {
+TorusMaze.prototype.getRoomFromLocation = function(x, y) {
   x = util.euclideanMod(x, this.sizeX);
   y = util.euclideanMod(y, this.sizeY);
   return this.sizeY * x + y;
 };
-ToroidalMaze.prototype.getRoomLocation = function(room) {
+TorusMaze.prototype.getRoomLocation = function(room) {
   var x = Math.floor(room / this.sizeY);
   var y = room % this.sizeY;
   return {x:x, y:y};
 };
 
-ToroidalMaze.prototype.roomToVectors = function(room) {
+TorusMaze.prototype.roomToVectors = function(room) {
   var roomLocation = this.getRoomLocation(room);
   return [
     { edge:this.getEdgeFromLocation(Maze.VERTICAL,   roomLocation.x + 0, roomLocation.y + 0),
@@ -76,7 +76,7 @@ ToroidalMaze.prototype.roomToVectors = function(room) {
       room:this.getRoomFromLocation(roomLocation.x - 0, roomLocation.y - 1) },
   ];
 };
-ToroidalMaze.prototype.edgeToRoomPair = function(edge) {
+TorusMaze.prototype.edgeToRoomPair = function(edge) {
   var edgeLocation = this.getEdgeLocation(edge);
   var result = [];
   var x = edgeLocation.x;
@@ -93,16 +93,16 @@ ToroidalMaze.prototype.edgeToRoomPair = function(edge) {
   return result;
 };
 
-ToroidalMaze.prototype.getVertexCount = function() {
+TorusMaze.prototype.getVertexCount = function() {
   return this.getRoomCount();
 };
-ToroidalMaze.prototype.getVertexLocation = function(vertex) {
+TorusMaze.prototype.getVertexLocation = function(vertex) {
   return this.getRoomLocation(vertex);
 };
-ToroidalMaze.prototype.getVertexFromLocation = function(x, y) {
+TorusMaze.prototype.getVertexFromLocation = function(x, y) {
   return this.getRoomFromLocation(x, y);
 };
-ToroidalMaze.prototype.vertexToEdges = function(vertex) {
+TorusMaze.prototype.vertexToEdges = function(vertex) {
   var vertexLocation = this.getVertexLocation(vertex);
   var x = vertexLocation.x;
   var y = vertexLocation.y;
@@ -113,7 +113,7 @@ ToroidalMaze.prototype.vertexToEdges = function(vertex) {
     this.getEdgeFromLocation(Maze.HORIZONTAL, x + 1, y),
   ];
 };
-ToroidalMaze.prototype.vertexToBranches = function(vertex) {
+TorusMaze.prototype.vertexToBranches = function(vertex) {
   var vertexLocation = this.getVertexLocation(vertex);
   var x = vertexLocation.x;
   var y = vertexLocation.y;
@@ -129,18 +129,18 @@ ToroidalMaze.prototype.vertexToBranches = function(vertex) {
   ];
   return branches;
 };
-ToroidalMaze.prototype.getBorderBranches = function() {
+TorusMaze.prototype.getBorderBranches = function() {
   // there's no border
   return [];
 };
 
 
-ToroidalMaze.prototype.makeRenderer = function(canvas) {
-  return new ToroidalMazeRenderer(canvas, this.sizeX, this.sizeY);
+TorusMaze.prototype.makeRenderer = function(canvas) {
+  return new TorusMazeRenderer(canvas, this.sizeX, this.sizeY);
 };
 
 
-function ToroidalMazeRenderer(canvas, sizeX, sizeY) {
+function TorusMazeRenderer(canvas, sizeX, sizeY) {
   this.canvas = canvas;
   this.sizeX = sizeX;
   this.sizeY = sizeY;
@@ -151,7 +151,7 @@ function ToroidalMazeRenderer(canvas, sizeX, sizeY) {
   canvas.height = (sizeY + 1) * this.cellSize;
 }
 
-ToroidalMazeRenderer.prototype.render = function(maze) {
+TorusMazeRenderer.prototype.render = function(maze) {
   var context = this.canvas.getContext("2d");
   var cellSize = this.cellSize;
   var canvasWidth = this.canvas.width;
@@ -208,12 +208,12 @@ ToroidalMazeRenderer.prototype.render = function(maze) {
   }
 };
 
-ToroidalMazeRenderer.prototype.scroll = function(deltaX, deltaY) {
+TorusMazeRenderer.prototype.scroll = function(deltaX, deltaY) {
   this.tessellationOffsetX = util.euclideanMod(this.tessellationOffsetX + deltaX, this.sizeX * this.cellSize);
   this.tessellationOffsetY = util.euclideanMod(this.tessellationOffsetY + deltaY, this.sizeY * this.cellSize);
 };
 
-ToroidalMazeRenderer.prototype.getRoomLocationFromPixelLocation = function(mouseX, mouseY) {
+TorusMazeRenderer.prototype.getRoomLocationFromPixelLocation = function(mouseX, mouseY) {
   var x = Math.floor(util.euclideanMod(mouseX - this.tessellationOffsetX, this.sizeX * this.cellSize) / this.cellSize);
   var y = Math.floor(util.euclideanMod(mouseY - this.tessellationOffsetY, this.sizeY * this.cellSize) / this.cellSize);
   // have to bounds check here, because getRoomFromLocation won't

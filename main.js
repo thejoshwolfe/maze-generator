@@ -1,6 +1,6 @@
 (function() {
-  var euclideanTopologyButton = window.document.getElementById("euclideanTopologyButton");
-  var toroidalTopologyButton = window.document.getElementById("toroidalTopologyButton");
+  var rectangleTopologyButton = window.document.getElementById("rectangleTopologyButton");
+  var torusTopologyButton = window.document.getElementById("torusTopologyButton");
 
   var algorithmCombobox = window.document.getElementById("algorithmCombobox");
   var sizeXTextbox = window.document.getElementById("sizeXTextbox");
@@ -55,7 +55,7 @@
   initGenerator();
   function initGenerator(refresh) {
     stopAnimation();
-    var topology = euclideanTopologyButton.checked ? Maze : ToroidalMaze;
+    var topology = rectangleTopologyButton.checked ? Maze : TorusMaze;
     var algorithmFunction = algorithms[algorithmCombobox.value];
     var sizeX = parseInt(sizeXTextbox.value, 10) || 1;
     var sizeY = parseInt(sizeYTextbox.value, 10) || 1;
@@ -75,6 +75,9 @@
   }
   function setMaze(newMaze) {
     maze = newMaze;
+    previousTopology = maze.constructor;
+    rectangleTopologyButton.checked = previousTopology === Maze;
+    torusTopologyButton.checked = previousTopology === TorusMaze;
     sizeXTextbox.value = maze.sizeX.toString();
     sizeYTextbox.value = maze.sizeY.toString();
 
@@ -92,8 +95,8 @@
   function waitAndInitGenerator() {
     setTimeout(initGenerator, 0);
   }
-  euclideanTopologyButton.addEventListener("click", waitAndInitGenerator);
-  toroidalTopologyButton.addEventListener("click", waitAndInitGenerator);
+  rectangleTopologyButton.addEventListener("click", waitAndInitGenerator);
+  torusTopologyButton.addEventListener("click", waitAndInitGenerator);
   algorithmCombobox.addEventListener("change", waitAndInitGenerator);
   sizeXTextbox.addEventListener("keydown", waitAndInitGenerator);
   sizeYTextbox.addEventListener("keydown", waitAndInitGenerator);
