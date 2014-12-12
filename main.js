@@ -171,7 +171,7 @@
       if (pathFinderPoints.length === 1) {
         pathHighlightMaze.roomColors[pathFinderPoints[0]] = "#ffaaaa";
       } else {
-        var path = aStarSearch(maze, pathFinderPoints[0], pathFinderPoints[1]);
+        var path = dijkstraSearch(maze, pathFinderPoints[0], pathFinderPoints[1]);
         if (path != null) {
           path.forEach(function(room) {
             pathHighlightMaze.roomColors[room] = "#ffaaaa";

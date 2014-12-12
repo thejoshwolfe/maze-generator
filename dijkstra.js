@@ -1,6 +1,6 @@
-function aStarSearch(maze, start, end) {
+function dijkstraSearch(maze, start, end) {
   var endLocation = maze.getRoomLocation(end);
-  var nodeHeap = new Heap(compareNodes);
+  var nodeQueue = [];
   var visitedRooms = [];
   var roomCount = maze.getRoomCount();
   for (var i = 0; i < roomCount; i++) {
@@ -8,16 +8,14 @@ function aStarSearch(maze, start, end) {
   }
 
   // starting node
-  nodeHeap.push({
+  nodeQueue.push({
     room:start,
     parent:null,
-    cost:0,
-    fitness:heuristic(start),
   });
   visitedRooms[start] = true;
 
-  while (nodeHeap.size() > 0) {
-    var fromNode = nodeHeap.pop();
+  while (nodeQueue.length > 0) {
+    var fromNode = nodeQueue.shift();
     if (fromNode.room === end) {
       // success
       return reconstructPath(fromNode);
@@ -29,12 +27,9 @@ function aStarSearch(maze, start, end) {
     });
     for (var i = 0; i < vectors.length; i++) {
       var neighborRoom = vectors[i].room;
-      var cost = fromNode.cost + 1;
-      nodeHeap.push({
+      nodeQueue.push({
         room:neighborRoom,
         parent:fromNode,
-        cost:cost,
-        fitness:cost + heuristic(neighborRoom),
       });
       visitedRooms[neighborRoom] = true;
     }
@@ -42,14 +37,6 @@ function aStarSearch(maze, start, end) {
   // impossible
   return null;
 
-  function heuristic(room) {
-    // manhattan distance
-    var roomLocation = maze.getRoomLocation(room);
-    return Math.abs(roomLocation.x - endLocation.x) + Math.abs(roomLocation.y - endLocation.y);
-  }
-  function compareNodes(a, b) {
-    return a.fitness - b.fitness;
-  }
   function reconstructPath(node) {
     var path = [];
     while (node != null) {

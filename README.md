@@ -143,10 +143,8 @@ Therefore, any traversals that arrive too soon are failures.
 ## Path Finding
 
 You can click two points on the maze to find the path between them.
-This uses an [A* search algorithm](http://en.wikipedia.org/wiki/A*_search_algorithm).
+This uses [Dijkstra's algorithm](http://en.wikipedia.org/wiki/Dijkstra%27s_algorithm).
 You can also click and drag.
-
-See also [issue 5](https://github.com/thejoshwolfe/maze-generator/issues/5).
 
 
 ## Experiments
