@@ -8,8 +8,18 @@ function DepthFirstIvyGenerator(topology, sizeX, sizeY) {
   // pick a random starging point around the borders
   var branches = this.maze.getBorderBranches();
   if (branches.length > 0) {
-    var startingBranch = branches[Math.floor(Math.random() * branches.length)];
+    var startingBranch = branches[util.randomInt(branches.length)];
     this.pushBranch(startingBranch);
+  } else {
+    // start at a random vertex
+    var vertexCount = this.maze.getVertexCount();
+    if (vertexCount !== 0) {
+      var startingVertex = util.randomInt(vertexCount);
+      this.vertexHasBeenVisited[startingVertex] = true;
+      var branches = this.maze.vertexToBranches(startingVertex);
+      var startingBranch = branches[util.randomInt(branches.length)];
+      this.pushBranch(startingBranch);
+    }
   }
 }
 DepthFirstIvyGenerator.prototype.isDone = function() {

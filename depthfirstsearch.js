@@ -5,7 +5,7 @@ function DepthFirstSearchGenerator(topology, sizeX, sizeY) {
   this.doneRooms = [];
 
   // pick a starting room
-  var startingRoom = Math.floor(Math.random() * this.maze.getRoomCount());
+  var startingRoom = util.randomInt(this.maze.getRoomCount());
   this.addRoomToMaze(startingRoom);
 }
 
@@ -35,7 +35,7 @@ DepthFirstSearchGenerator.prototype.step = function() {
       return;
     }
     // go in a random direction
-    var vector = vectors[Math.floor(Math.random() * vectors.length)];
+    var vector = vectors[util.randomInt(vectors.length)];
     self.maze.edgeColors[vector.edge] = Maze.OPEN;
     self.maze.roomColors[vector.room] = DepthFirstSearchGenerator.CONSIDERING;
     self.stack.push(vector.room);

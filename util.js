@@ -31,6 +31,10 @@ window.util = {
     return array.pop();
   },
 
+  randomInt: function(lessThanThis) {
+    return Math.floor(Math.random() * lessThanThis);
+  },
+
   euclideanMod: function(numerator, denominator) {
     var result = numerator % denominator;
     if (result < 0) result += denominator;
