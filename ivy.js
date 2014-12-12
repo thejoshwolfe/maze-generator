@@ -1,6 +1,5 @@
 function IvyGenerator(topology, sizeX, sizeY) {
   this.maze = new topology(sizeX, sizeY, Maze.OPEN, Maze.OPEN);
-  this.isDone = false;
 
   this.vertexHasBeenVisited = [];
   this.availableBranches = [];
@@ -8,6 +7,9 @@ function IvyGenerator(topology, sizeX, sizeY) {
   // start around the borders
   Array.prototype.push.apply(this.availableBranches, this.maze.getBorderBranches());
 }
+IvyGenerator.prototype.isDone = function() {
+  return this.availableBranches.length === 0;
+};
 
 IvyGenerator.prototype.step = function() {
   while (this.availableBranches.length > 0) {
@@ -20,5 +22,4 @@ IvyGenerator.prototype.step = function() {
     Array.prototype.push.apply(this.availableBranches, branches);
     return;
   }
-  this.isDone = true;
 };

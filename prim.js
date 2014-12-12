@@ -1,6 +1,5 @@
 function PrimGenerator(topology, sizeX, sizeY) {
   this.maze = new topology(sizeX, sizeY, Maze.FILLED, Maze.FILLED);
-  this.isDone = false;
 
   this.includedRooms = [];
   var roomCount = this.maze.getRoomCount();
@@ -14,6 +13,9 @@ function PrimGenerator(topology, sizeX, sizeY) {
   var startingRoom = Math.floor(Math.random() * this.maze.getRoomCount());
   this.addRoomToMaze(startingRoom);
 }
+PrimGenerator.prototype.isDone = function() {
+  return this.transitionVectors.length === 0;
+};
 
 PrimGenerator.prototype.addRoomToMaze = function(room) {
   this.includedRooms[room] = true;
@@ -37,5 +39,4 @@ PrimGenerator.prototype.step = function() {
     this.addRoomToMaze(vector.room);
     return;
   }
-  this.isDone = true;
 };

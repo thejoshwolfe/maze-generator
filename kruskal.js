@@ -1,7 +1,6 @@
 KruskalGenerator.CONSIDERING = "#aaaaaa";
 function KruskalGenerator(topology, sizeX, sizeY) {
   this.maze = new topology(sizeX, sizeY, KruskalGenerator.CONSIDERING, Maze.OPEN);
-  this.isDone = false;
 
   // the order in which we try to delete things
   this.edges = [];
@@ -20,6 +19,9 @@ function KruskalGenerator(topology, sizeX, sizeY) {
     this.roomToParentRoom[i] = i;
   }
 }
+KruskalGenerator.prototype.isDone = function() {
+  return this.edgesCursor >= this.edges.length;
+};
 KruskalGenerator.prototype.getParent = function(room) {
   var parent = this.roomToParentRoom[room];
   if (parent === room) return parent;
@@ -46,5 +48,4 @@ KruskalGenerator.prototype.step = function() {
     }
     return;
   }
-  this.isDone = true;
 };

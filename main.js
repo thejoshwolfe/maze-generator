@@ -296,7 +296,7 @@
 
   function stepGenerator() {
     generator.step();
-    if (generator.isDone) {
+    if (generator.isDone()) {
       generator = null;
       stopAnimation();
     }

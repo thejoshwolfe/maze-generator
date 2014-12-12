@@ -1,7 +1,6 @@
 DepthFirstIvyGenerator.CONSIDERING = "#8888ff";
 function DepthFirstIvyGenerator(topology, sizeX, sizeY) {
   this.maze = new topology(sizeX, sizeY, Maze.OPEN, Maze.OPEN);
-  this.isDone = false;
 
   this.vertexHasBeenVisited = [];
   this.stack = [];
@@ -11,11 +10,11 @@ function DepthFirstIvyGenerator(topology, sizeX, sizeY) {
   if (branches.length > 0) {
     var startingBranch = branches[Math.floor(Math.random() * branches.length)];
     this.pushBranch(startingBranch);
-  } else {
-    // 1xn maze
-    this.isDone = true;
   }
 }
+DepthFirstIvyGenerator.prototype.isDone = function() {
+  return this.stack.length === 0;
+};
 
 DepthFirstIvyGenerator.prototype.pushBranch = function(branch) {
   this.vertexHasBeenVisited[branch.vertex] = true;
@@ -41,5 +40,4 @@ DepthFirstIvyGenerator.prototype.step = function() {
     }
     return;
   }
-  self.isDone = true;
 };
