@@ -1,4 +1,3 @@
-
 Maze.FILLED = "#000000";
 Maze.OPEN = "#ffffff";
 Maze.VERTICAL = 0;
@@ -65,20 +64,20 @@ Maze.prototype.getRoomLocation = function(room) {
 
 Maze.prototype.roomToVectors = function(room) {
   var roomLocation = this.getRoomLocation(room);
-  var neighborLocations = [
-    {x:roomLocation.x + 1, y:roomLocation.y - 0},
-    {x:roomLocation.x + 0, y:roomLocation.y + 1},
-    {x:roomLocation.x - 1, y:roomLocation.y + 0},
-    {x:roomLocation.x - 0, y:roomLocation.y - 1},
-  ];
   var edges = [
-    this.getEdgeFromLocation(Maze.VERTICAL,   roomLocation.x + 0, roomLocation.y + 0),
-    this.getEdgeFromLocation(Maze.HORIZONTAL, roomLocation.x + 0, roomLocation.y + 0),
-    this.getEdgeFromLocation(Maze.VERTICAL,   roomLocation.x - 1, roomLocation.y + 0),
-    this.getEdgeFromLocation(Maze.HORIZONTAL, roomLocation.x + 0, roomLocation.y - 1),
+    this.getEdgeFromLocation(Maze.VERTICAL,   roomLocation.x + 0, roomLocation.y    ),
+    this.getEdgeFromLocation(Maze.VERTICAL,   roomLocation.x - 1, roomLocation.y    ),
+    this.getEdgeFromLocation(Maze.HORIZONTAL, roomLocation.x    , roomLocation.y + 0),
+    this.getEdgeFromLocation(Maze.HORIZONTAL, roomLocation.x    , roomLocation.y - 1),
+  ];
+  var neighborLocations = [
+    {x:roomLocation.x + 1, y:roomLocation.y    },
+    {x:roomLocation.x - 1, y:roomLocation.y    },
+    {x:roomLocation.x    , y:roomLocation.y + 1},
+    {x:roomLocation.x    , y:roomLocation.y - 1},
   ];
   var vectors = [];
-  for (var i = 0; i < 4; i++) {
+  for (var i = 0; i < neighborLocations.length; i++) {
     var neighborLocation = neighborLocations[i];
     // bounds check
     if (neighborLocation.x < 0 || neighborLocation.x >= this.sizeX) continue;
@@ -132,16 +131,10 @@ Maze.prototype.vertexToBranches = function(vertex) {
   var x = vertexLocation.x;
   var y = vertexLocation.y;
   var branches = [];
-  if (y > 0) {
+  if (x < this.sizeX - 2) {
     branches.push({
-      vertex:this.getVertexFromLocation(x, y - 1),
-      edge:this.getEdgeFromLocation(Maze.VERTICAL, x, y),
-    });
-  }
-  if (y < this.sizeY - 2) {
-    branches.push({
-      vertex:this.getVertexFromLocation(x, y + 1),
-      edge:this.getEdgeFromLocation(Maze.VERTICAL, x, y + 1),
+      vertex:this.getVertexFromLocation(x + 1, y),
+      edge:this.getEdgeFromLocation(Maze.HORIZONTAL, x + 1, y),
     });
   }
   if (x > 0) {
@@ -150,10 +143,16 @@ Maze.prototype.vertexToBranches = function(vertex) {
       edge:this.getEdgeFromLocation(Maze.HORIZONTAL, x, y),
     });
   }
-  if (x < this.sizeX - 2) {
+  if (y < this.sizeY - 2) {
     branches.push({
-      vertex:this.getVertexFromLocation(x + 1, y),
-      edge:this.getEdgeFromLocation(Maze.HORIZONTAL, x + 1, y),
+      vertex:this.getVertexFromLocation(x, y + 1),
+      edge:this.getEdgeFromLocation(Maze.VERTICAL, x, y + 1),
+    });
+  }
+  if (y > 0) {
+    branches.push({
+      vertex:this.getVertexFromLocation(x, y - 1),
+      edge:this.getEdgeFromLocation(Maze.VERTICAL, x, y),
     });
   }
   return branches;
@@ -244,6 +243,7 @@ Maze.prototype.getSerialization = function() {
   var topologySerialization = (function() {
     switch (self.constructor) {
       case Maze: return "rectangle";
+      case CylinderMaze: return "cylinder";
       case TorusMaze: return "torus";
     }
     throw new Error();
@@ -258,7 +258,7 @@ Maze.prototype.getSerialization = function() {
   }
   return serialization;
 };
-Maze.decodeRegex = new RegExp("^(rectangle|torus),(\\d+),(\\d+),([" + Maze.hexEncoding + "]*)$");
+Maze.decodeRegex = new RegExp("^(rectangle|cylinder|torus),(\\d+),(\\d+),([" + Maze.hexEncoding + "]*)$");
 Maze.fromSerialization = function(string) {
   var match = Maze.decodeRegex.exec(string);
   if (match == null) return null;
@@ -269,6 +269,7 @@ Maze.fromSerialization = function(string) {
   var topology = (function() {
     switch (topologySerialization) {
       case "rectangle": return Maze;
+      case "cylinder": return CylinderMaze;
       case "torus": return TorusMaze;
     }
     throw new Error();
@@ -308,6 +309,12 @@ function MazeRenderer(canvas, sizeX, sizeY) {
   this.sizeX = sizeX;
   this.sizeY = sizeY;
   this.cellSize = 10;
+  this.tessellationOffsetX = this.cellSize/2;
+  this.tessellationOffsetY = this.cellSize/2;
+  this.tessellationMinX = 0;
+  this.tessellationMaxX = 0;
+  this.tessellationMinY = 0;
+  this.tessellationMaxY = 0;
   canvas.width = (sizeX + 1) * this.cellSize;
   canvas.height = (sizeY + 1) * this.cellSize;
 }
@@ -315,7 +322,10 @@ function MazeRenderer(canvas, sizeX, sizeY) {
 MazeRenderer.prototype.render = function(maze) {
   var context = this.canvas.getContext("2d");
   var cellSize = this.cellSize;
-  var cellSizeHalf = cellSize / 2;
+  var canvasWidth = this.canvas.width;
+  var canvasHeight = this.canvas.height;
+  var tessellationOffsetX = this.tessellationOffsetX;
+  var tessellationOffsetY = this.tessellationOffsetY;
 
   // roomColors
   var roomCount = maze.getRoomCount();
@@ -323,10 +333,19 @@ MazeRenderer.prototype.render = function(maze) {
     var color = maze.roomColors[i];
     if (color === Maze.OPEN) continue;
     var roomLocation = maze.getRoomLocation(i);
-    var x = roomLocation.x;
-    var y = roomLocation.y;
     context.fillStyle = color;
-    context.fillRect(x * cellSize + cellSize - cellSizeHalf, y * cellSize + cellSize - cellSizeHalf, cellSize, cellSize);
+    for (var tessellationIndexX = this.tessellationMinX; tessellationIndexX <= this.tessellationMaxX; tessellationIndexX++) {
+      for (var tessellationIndexY = this.tessellationMinY; tessellationIndexY <= this.tessellationMaxY; tessellationIndexY++) {
+        var x = roomLocation.x + tessellationIndexX * this.sizeX;
+        var y = roomLocation.y + tessellationIndexY * this.sizeY;
+        var pixelX = tessellationOffsetX + x * cellSize;
+        var pixelY = tessellationOffsetY + y * cellSize;
+        if (-cellSize <= pixelX && pixelX <= canvasWidth + cellSize &&
+            -cellSize <= pixelY && pixelY <= canvasHeight + cellSize) {
+          context.fillRect(pixelX, pixelY, cellSize, cellSize);
+        }
+      }
+    }
   }
 
   // edges
@@ -335,20 +354,35 @@ MazeRenderer.prototype.render = function(maze) {
     var color = maze.edgeColors[i];
     if (color === Maze.OPEN) continue;
     var edgeLocation = maze.getEdgeLocation(i);
-    var x = edgeLocation.x;
-    var y = edgeLocation.y;
     context.strokeStyle = color;
     context.beginPath();
-    context.moveTo(x * cellSize + cellSize + cellSizeHalf, y * cellSize + cellSize + cellSizeHalf);
-    if (edgeLocation.orientation === Maze.HORIZONTAL) {
-      context.lineTo(x * cellSize + cellSize - cellSizeHalf, y * cellSize + cellSize + cellSizeHalf);
-    } else {
-      context.lineTo(x * cellSize + cellSize + cellSizeHalf, y * cellSize + cellSize - cellSizeHalf);
+    for (var tessellationIndexX = this.tessellationMinX; tessellationIndexX <= this.tessellationMaxX; tessellationIndexX++) {
+      for (var tessellationIndexY = this.tessellationMinY; tessellationIndexY <= this.tessellationMaxY; tessellationIndexY++) {
+        var x = edgeLocation.x + tessellationIndexX * this.sizeX;
+        var y = edgeLocation.y + tessellationIndexY * this.sizeY;
+        var pixelX = tessellationOffsetX + (x + 1) * cellSize;
+        var pixelY = tessellationOffsetY + (y + 1) * cellSize;
+        if (-cellSize <= pixelX && pixelX <= canvasWidth + cellSize &&
+            -cellSize <= pixelY && pixelY <= canvasHeight + cellSize) {
+          if (edgeLocation.orientation === Maze.HORIZONTAL) {
+            context.moveTo(pixelX - cellSize, pixelY);
+          } else {
+            context.moveTo(pixelX, pixelY - cellSize);
+          }
+          context.lineTo(pixelX, pixelY);
+        }
+      }
     }
     context.stroke();
   }
 
-  // borders
+  this.renderBorders(maze);
+};
+
+MazeRenderer.prototype.renderBorders = function(maze) {
+  var context = this.canvas.getContext("2d");
+  var cellSize = this.cellSize;
+  var cellSizeHalf = cellSize / 2;
   context.strokeStyle = Maze.FILLED;
   context.beginPath();
   context.moveTo(cellSizeHalf, cellSizeHalf);

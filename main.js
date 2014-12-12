@@ -1,5 +1,6 @@
 (function() {
   var rectangleTopologyButton = window.document.getElementById("rectangleTopologyButton");
+  var cylinderTopologyButton = window.document.getElementById("cylinderTopologyButton");
   var torusTopologyButton = window.document.getElementById("torusTopologyButton");
 
   var algorithmCombobox = window.document.getElementById("algorithmCombobox");
@@ -56,7 +57,14 @@
   initGenerator();
   function initGenerator(refresh) {
     stopAnimation();
-    var topology = rectangleTopologyButton.checked ? Maze : TorusMaze;
+    var topology = (function() {
+      switch (true) {
+        case rectangleTopologyButton.checked: return Maze;
+        case cylinderTopologyButton.checked: return CylinderMaze;
+        case torusTopologyButton.checked: return TorusMaze;
+      }
+      throw new Error();
+    })();
     var algorithmFunction = algorithms[algorithmCombobox.value];
     var sizeX = parseInt(sizeXTextbox.value, 10) || 1;
     var sizeY = parseInt(sizeYTextbox.value, 10) || 1;
@@ -78,6 +86,7 @@
     maze = newMaze;
     previousTopology = maze.constructor;
     rectangleTopologyButton.checked = previousTopology === Maze;
+    cylinderTopologyButton.checked = previousTopology === CylinderMaze;
     torusTopologyButton.checked = previousTopology === TorusMaze;
     sizeXTextbox.value = maze.sizeX.toString();
     sizeYTextbox.value = maze.sizeY.toString();
@@ -97,6 +106,7 @@
     setTimeout(initGenerator, 0);
   }
   rectangleTopologyButton.addEventListener("click", waitAndInitGenerator);
+  cylinderTopologyButton.addEventListener("click", waitAndInitGenerator);
   torusTopologyButton.addEventListener("click", waitAndInitGenerator);
   algorithmCombobox.addEventListener("change", waitAndInitGenerator);
   sizeXTextbox.addEventListener("keydown", waitAndInitGenerator);
