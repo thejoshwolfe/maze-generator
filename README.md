@@ -15,6 +15,32 @@ This means that all rooms are accessible, and there are no loops in the maze.
 Any two rooms in the maze could be chosen as the entrance and exit, and there would only be one path between them.
 The Longest Path section below describes one attempt at choosing an entrance and exit that isn't boring.
 
+
+## Topology
+
+### Rectangle
+
+The rectangle topology is what we're all used to.
+It's got a border of walls around it.
+
+### Torus
+
+A torus topology is what you find in [Asteroids](http://en.wikipedia.org/wiki/Asteroids_%28video_game%29).
+The right and left sides are connected together, so a maze traversal could go off one side and show up on the other side.
+The same is true for up and down.
+
+But that's the simple understanding of a toroidal topology.
+A more correct understanding loses the distinction between the "right side" and the "left side".
+Try right-click dragging a torus maze, and see that the entire thing repeats itself seamlessly in all directions.
+There is no center; in fact, there is no specific location that is special in any way.
+
+Toroidal topologies are difficult to understand, but are actually more mathematically elegant.
+Since there are no border walls, there are fewer exceptions to questions like "how many open doors can a room have?"
+
+Currently, the Ivy and Depth-First Ivy generators do not work properly in a torus topology.
+They will both always create a maze with 2 loops.
+
+
 ## Maze Generating Algorithms
 
 See Wikipedia's page on [maze generator algorithms](http://en.wikipedia.org/wiki/Maze_generation_algorithm).
