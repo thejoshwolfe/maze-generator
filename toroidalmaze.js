@@ -1,3 +1,4 @@
+util.inherits(ToroidalMaze, Maze);
 function ToroidalMaze(sizeX, sizeY, initialEdgeColor, initialRoomColor) {
   this.sizeX = sizeX;
   this.sizeY = sizeY;
