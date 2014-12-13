@@ -133,10 +133,12 @@
       renderPath();
     } else {
       // right or middle click
-      scrollDragAnchorX = event.offsetX;
-      scrollDragAnchorY = event.offsetY;
+      scrollDragAnchorX = eventToMouseX(event);
+      scrollDragAnchorY = eventToMouseY(event);
     }
   });
+  function eventToMouseX(event) { return event.pageX - mazeCanvas.offsetLeft; }
+  function eventToMouseY(event) { return event.pageY - mazeCanvas.offsetTop; }
   // why on the window instead of the canvas? see http://stackoverflow.com/questions/5418740/jquery-mouseup-outside-window-possible/5419564#5419564
   window.addEventListener("mouseup", function() {
     heldDownMouseButton = null;
@@ -156,16 +158,16 @@
       renderPath();
     } else if (heldDownMouseButton === 2) {
       // right- or middle-click drag
-      var deltaX = event.offsetX - scrollDragAnchorX;
-      var deltaY = event.offsetY - scrollDragAnchorY;
-      scrollDragAnchorX = event.offsetX;
-      scrollDragAnchorY = event.offsetY;
+      var deltaX = eventToMouseX(event) - scrollDragAnchorX;
+      var deltaY = eventToMouseY(event) - scrollDragAnchorY;
+      scrollDragAnchorX = eventToMouseX(event);
+      scrollDragAnchorY = eventToMouseY(event);
       mazeRenderer.scroll(deltaX, deltaY);
       refreshDisplay();
     }
   });
   function getRoomFromMouseEvent(event) {
-    var roomLocation = mazeRenderer.getRoomLocationFromPixelLocation(event.offsetX, event.offsetY);
+    var roomLocation = mazeRenderer.getRoomLocationFromPixelLocation(eventToMouseX(event), eventToMouseY(event));
     if (roomLocation == null) return null;
     return maze.getRoomFromLocation(roomLocation.x, roomLocation.y);
   }
