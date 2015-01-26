@@ -29,51 +29,57 @@
     </style>
   </head>
   <body>
-    <p>See <a href="https://github.com/thejoshwolfe/maze-generator">this project on github</a> for more information.</p>
-    <p>
-      Topology:
-      <label><input id="rectangleTopologyButton" type="radio" name="topology" checked>Rectangle</label>
-      <label><input id="cylinderTopologyButton" type="radio" name="topology">Cylinder</label>
-      <label><input id="torusTopologyButton" type="radio" name="topology">Torus</label>
-    </p>
-    <select id="algorithmCombobox">
-      <option value="DepthFirstSearchGenerator" selected="selected">Depth-First Search</option>
-      <option value="PrimGenerator">Prim</option>
-      <option value="KruskalGenerator">Kruskal</option>
-      <option value="IvyGenerator">Ivy</option>
-      <option value="DepthFirstIvyGenerator">Depth-First Ivy</option>
-    </select>
-    Size: <input id="sizeXTextbox" class="numberTextbox" value="30">x<input id="sizeYTextbox" class="numberTextbox" value="30">
-    <br>
-    <canvas id="mazeCanvas" height=160 width=160></canvas>
-    <br>
-    Generation:
-    <button id="goButton">Go</button>
-    <button id="stepButton">Step</button>
-    <button id="beDoneButton">Be Done</button>
-    <button id="resetButton">Reset</button>
-    Data: <input id="mazeSerializationTextbox" placeholder="(copy/paste)" style="width:100px">
-    <p>
-      Longest Path:
-      <button id="longestPathGoButton">Go</button>
-      <button id="longestPathStepButton">Step</button>
-      <button id="longestPathBeDoneButton">Be Done</button>
-      <button id="longestPathResetButton">Reset</button>
-    </p>
-    <p>
-      Experimental:
-      <button id="shaveButton">Shave</button>
-      <button id="caveInButton">Cave In</button>
-      <button id="resetExperimentsButton">Reset</button>
-    </p>
-    <p>Statistics:</p>
-    <div class="rowEven">
-      <label><input id="doorsPerRoomCheckbox" type="checkbox">Doors per room:</label>
-      <div class="indent"><canvas id="doorsPerRoomCanvas"></canvas></div>
-    </div>
-    <div class="rowOdd">
-      <label><input id="wallsPerVertexCheckbox" type="checkbox">Walls per vertex:</label>
-      <div class="indent"><canvas id="wallsPerVertexCanvas"></canvas></div>
+    <div style="padding-left:350px;">
+      <div style="overflow-x:auto; overflow-y:auto; width:100%; height:100%;">
+        <canvas id="mazeCanvas" height=160 width=160></canvas>
+      </div>
+      <div style="overflow-y:auto; position:fixed; top:0; height:100%; margin-left:-350px; left:350px; width:350px;">
+        <p>See <a href="https://github.com/thejoshwolfe/maze-generator">this project on github</a> for more information.</p>
+        <p>
+          Topology:
+          <label><input id="rectangleTopologyButton" type="radio" name="topology" checked>Rectangle</label>
+          <label><input id="cylinderTopologyButton" type="radio" name="topology">Cylinder</label>
+          <label><input id="torusTopologyButton" type="radio" name="topology">Torus</label>
+        </p>
+        <select id="algorithmCombobox">
+          <option value="DepthFirstSearchGenerator" selected="selected">Depth-First Search</option>
+          <option value="PrimGenerator">Prim</option>
+          <option value="KruskalGenerator">Kruskal</option>
+          <option value="IvyGenerator">Ivy</option>
+          <option value="DepthFirstIvyGenerator">Depth-First Ivy</option>
+        </select>
+        Size: <input id="sizeXTextbox" class="numberTextbox" value="30">x<input id="sizeYTextbox" class="numberTextbox" value="30">
+        <br>
+        <br>
+        Generation:
+        <button id="goButton">Go</button>
+        <button id="stepButton">Step</button>
+        <button id="beDoneButton">Be Done</button>
+        <button id="resetButton">Reset</button>
+        Data: <input id="mazeSerializationTextbox" placeholder="(copy/paste)" style="width:100px">
+        <p>
+          Longest Path:
+          <button id="longestPathGoButton">Go</button>
+          <button id="longestPathStepButton">Step</button>
+          <button id="longestPathBeDoneButton">Be Done</button>
+          <button id="longestPathResetButton">Reset</button>
+        </p>
+        <p>
+          Experimental:
+          <button id="shaveButton">Shave</button>
+          <button id="caveInButton">Cave In</button>
+          <button id="resetExperimentsButton">Reset</button>
+        </p>
+        <p>Statistics:</p>
+        <div class="rowEven">
+          <label><input id="doorsPerRoomCheckbox" type="checkbox">Doors per room:</label>
+          <div class="indent"><canvas id="doorsPerRoomCanvas"></canvas></div>
+        </div>
+        <div class="rowOdd">
+          <label><input id="wallsPerVertexCheckbox" type="checkbox">Walls per vertex:</label>
+          <div class="indent"><canvas id="wallsPerVertexCanvas"></canvas></div>
+        </div>
+      </div>
     </div>
     <script src="main.js"></script>
   </body>
