@@ -1,19 +1,6 @@
 util.inherits(CylinderMaze, Maze);
 function CylinderMaze(sizeX, sizeY, initialEdgeColor, initialRoomColor) {
-  this.sizeX = sizeX;
-  this.sizeY = sizeY;
-
-  this.edgeColors = [];
-  var edgeCount = this.getEdgeCount();
-  for (var i = 0; i < edgeCount; i++) {
-    this.edgeColors.push(initialEdgeColor);
-  }
-
-  this.roomColors = [];
-  var roomCount = this.getRoomCount()
-  for (var i = 0; i < roomCount; i++) {
-    this.roomColors[i] = initialRoomColor;
-  }
+  Maze.call(this, sizeX, sizeY, initialEdgeColor, initialRoomColor);
 }
 
 CylinderMaze.prototype.getEdgeCount = function() {
@@ -149,12 +136,11 @@ CylinderMazeRenderer.prototype.renderBorders = function(maze) {
   var context = self.canvas.getContext("2d");
   var cellSize = self.cellSize;
   var cellSizeHalf = cellSize / 2;
-  context.strokeStyle = Maze.FILLED;
+  var wallThickness = self.wallThickness;
+  var wallThicknessHalf = wallThickness / 2;
+  context.fillStyle = Maze.FILLED;
   [cellSizeHalf, cellSizeHalf + self.sizeY * self.cellSize].forEach(function(y) {
-    context.beginPath();
-    context.moveTo(0, y);
-    context.lineTo(self.canvas.width, y);
-    context.stroke();
+    context.fillRect(0, y - wallThicknessHalf, self.canvas.width, wallThickness);
   });
 };
 

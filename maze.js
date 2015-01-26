@@ -318,6 +318,8 @@ function MazeRenderer(canvas, sizeX, sizeY) {
   var clampedCellSize = Math.max(10, Math.min(32, cellSizeByZoom));
   // make it an integer multiple of 2, or else the rendering has seems.
   this.cellSize = clampedCellSize >> 1 << 1;
+  // wall thickness is at least 2, and also an even integer.
+  this.wallThickness = Math.max(this.cellSize / 5, 2) >> 1 << 1;
   this.tessellationOffsetX = this.cellSize/2;
   this.tessellationOffsetY = this.cellSize/2;
   this.tessellationMinX = 0;
@@ -331,6 +333,8 @@ function MazeRenderer(canvas, sizeX, sizeY) {
 MazeRenderer.prototype.render = function(maze) {
   var context = this.canvas.getContext("2d");
   var cellSize = this.cellSize;
+  var wallThickness = this.wallThickness;
+  var wallThicknessHalf = wallThickness / 2;
   var canvasWidth = this.canvas.width;
   var canvasHeight = this.canvas.height;
   var tessellationOffsetX = this.tessellationOffsetX;
@@ -351,7 +355,8 @@ MazeRenderer.prototype.render = function(maze) {
         var pixelY = tessellationOffsetY + y * cellSize;
         if (-cellSize <= pixelX && pixelX <= canvasWidth + cellSize &&
             -cellSize <= pixelY && pixelY <= canvasHeight + cellSize) {
-          context.fillRect(pixelX, pixelY, cellSize, cellSize);
+          context.fillRect(pixelX + wallThicknessHalf, pixelY + wallThicknessHalf,
+                           cellSize - wallThickness, cellSize - wallThickness);
         }
       }
     }
@@ -363,8 +368,7 @@ MazeRenderer.prototype.render = function(maze) {
     var color = maze.edgeColors[i];
     if (color === Maze.OPEN) continue;
     var edgeLocation = maze.getEdgeLocation(i);
-    context.strokeStyle = color;
-    context.beginPath();
+    context.fillStyle = color;
     for (var tessellationIndexX = this.tessellationMinX; tessellationIndexX <= this.tessellationMaxX; tessellationIndexX++) {
       for (var tessellationIndexY = this.tessellationMinY; tessellationIndexY <= this.tessellationMaxY; tessellationIndexY++) {
         var x = edgeLocation.x + tessellationIndexX * this.sizeX;
@@ -374,15 +378,15 @@ MazeRenderer.prototype.render = function(maze) {
         if (-cellSize <= pixelX && pixelX <= canvasWidth + cellSize &&
             -cellSize <= pixelY && pixelY <= canvasHeight + cellSize) {
           if (edgeLocation.orientation === Maze.HORIZONTAL) {
-            context.moveTo(pixelX - cellSize, pixelY);
+            context.fillRect(pixelX - cellSize + wallThicknessHalf, pixelY - wallThicknessHalf,
+                             cellSize - wallThickness, wallThickness);
           } else {
-            context.moveTo(pixelX, pixelY - cellSize);
+            context.fillRect(pixelX - wallThicknessHalf, pixelY - cellSize + wallThicknessHalf,
+                             wallThickness, cellSize - wallThickness);
           }
-          context.lineTo(pixelX, pixelY);
         }
       }
     }
-    context.stroke();
   }
 
   this.renderBorders(maze);
@@ -393,7 +397,7 @@ MazeRenderer.prototype.render = function(maze) {
     var color = maze.vertexColors[i];
     if (color === Maze.OPEN) return;
     var vertexLocation = maze.getVertexLocation(i);
-    context.fillStyle = "#000000";
+    context.fillStyle = color;
     for (var tessellationIndexX = this.tessellationMinX; tessellationIndexX <= this.tessellationMaxX; tessellationIndexX++) {
       for (var tessellationIndexY = this.tessellationMinY; tessellationIndexY <= this.tessellationMaxY; tessellationIndexY++) {
         var x = vertexLocation.x + tessellationIndexX * this.sizeX;
@@ -402,7 +406,7 @@ MazeRenderer.prototype.render = function(maze) {
         var pixelY = tessellationOffsetY + (y + 1) * cellSize;
         if (-cellSize <= pixelX && pixelX <= canvasWidth + cellSize &&
             -cellSize <= pixelY && pixelY <= canvasHeight + cellSize) {
-          context.fillRect(pixelX, pixelY, 1, 1);
+          context.fillRect(pixelX - wallThicknessHalf, pixelY - wallThicknessHalf, wallThickness, wallThickness);
         }
       }
     }
@@ -410,17 +414,23 @@ MazeRenderer.prototype.render = function(maze) {
 };
 
 MazeRenderer.prototype.renderBorders = function(maze) {
-  var context = this.canvas.getContext("2d");
-  var cellSize = this.cellSize;
+  var self = this;
+  var context = self.canvas.getContext("2d");
+  var cellSize = self.cellSize;
   var cellSizeHalf = cellSize / 2;
-  context.strokeStyle = Maze.FILLED;
-  context.beginPath();
-  context.moveTo(cellSizeHalf, cellSizeHalf);
-  context.lineTo(cellSizeHalf + this.sizeX * cellSize, cellSizeHalf);
-  context.lineTo(cellSizeHalf + this.sizeX * cellSize, cellSizeHalf + this.sizeY * cellSize);
-  context.lineTo(cellSizeHalf, cellSizeHalf + this.sizeY * cellSize);
-  context.lineTo(cellSizeHalf, cellSizeHalf);
-  context.stroke();
+  var wallThickness = self.wallThickness;
+  var wallThicknessHalf = wallThickness / 2;
+  context.fillStyle = Maze.FILLED;
+  // horizontal borders cover the corners
+  [cellSizeHalf, cellSizeHalf + self.sizeY * self.cellSize].forEach(function(y) {
+    context.fillRect(cellSizeHalf - wallThicknessHalf, y - wallThicknessHalf,
+                     self.sizeX * cellSize + wallThickness, wallThickness);
+  });
+  // vertical borders do not cover the corners
+  [cellSizeHalf, cellSizeHalf + self.sizeX * self.cellSize].forEach(function(x) {
+    context.fillRect(x - wallThicknessHalf, cellSizeHalf + wallThicknessHalf,
+                     wallThickness, self.sizeY * cellSize - wallThickness);
+  });
 };
 
 MazeRenderer.prototype.scroll = function(deltaX, deltaY) {

@@ -1,19 +1,6 @@
 util.inherits(TorusMaze, Maze);
 function TorusMaze(sizeX, sizeY, initialEdgeColor, initialRoomColor) {
-  this.sizeX = sizeX;
-  this.sizeY = sizeY;
-
-  this.edgeColors = [];
-  var edgeCount = this.getEdgeCount();
-  for (var i = 0; i < edgeCount; i++) {
-    this.edgeColors.push(initialEdgeColor);
-  }
-
-  this.roomColors = [];
-  var roomCount = this.getRoomCount()
-  for (var i = 0; i < roomCount; i++) {
-    this.roomColors[i] = initialRoomColor;
-  }
+  Maze.call(this, sizeX, sizeY, initialEdgeColor, initialRoomColor);
 }
 
 TorusMaze.prototype.getEdgeCount = function() {
