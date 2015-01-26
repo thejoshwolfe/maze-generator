@@ -15,7 +15,13 @@ function Maze(sizeX, sizeY, initialEdgeColor, initialRoomColor) {
   this.roomColors = [];
   var roomCount = this.getRoomCount()
   for (var i = 0; i < roomCount; i++) {
-    this.roomColors[i] = initialRoomColor;
+    this.roomColors.push(initialRoomColor);
+  }
+
+  this.vertexColors = [];
+  var vertexCount = this.getVertexCount();
+  for (var i = 0; i < vertexCount; i++) {
+    this.vertexColors.push(Maze.FILLED);
   }
 };
 
@@ -380,6 +386,27 @@ MazeRenderer.prototype.render = function(maze) {
   }
 
   this.renderBorders(maze);
+
+  // vertex colors
+  var vertexCount = maze.getVertexCount();
+  for (var i = 0; i < vertexCount; i++) {
+    var color = maze.vertexColors[i];
+    if (color === Maze.OPEN) return;
+    var vertexLocation = maze.getVertexLocation(i);
+    context.fillStyle = "#000000";
+    for (var tessellationIndexX = this.tessellationMinX; tessellationIndexX <= this.tessellationMaxX; tessellationIndexX++) {
+      for (var tessellationIndexY = this.tessellationMinY; tessellationIndexY <= this.tessellationMaxY; tessellationIndexY++) {
+        var x = vertexLocation.x + tessellationIndexX * this.sizeX;
+        var y = vertexLocation.y + tessellationIndexY * this.sizeY;
+        var pixelX = tessellationOffsetX + (x + 1) * cellSize;
+        var pixelY = tessellationOffsetY + (y + 1) * cellSize;
+        if (-cellSize <= pixelX && pixelX <= canvasWidth + cellSize &&
+            -cellSize <= pixelY && pixelY <= canvasHeight + cellSize) {
+          context.fillRect(pixelX, pixelY, 1, 1);
+        }
+      }
+    }
+  }
 };
 
 MazeRenderer.prototype.renderBorders = function(maze) {
