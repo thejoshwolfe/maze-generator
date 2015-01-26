@@ -1,20 +1,18 @@
 function DepthFirstSearchGenerator(topology, sizeX, sizeY) {
   this.maze = new topology(sizeX, sizeY, Maze.FILLED, Maze.FILLED);
 
+  // room,edge,room,edge, ..., room
   this.stack = [];
   this.doneRooms = [];
 
   // pick a starting room
   var startingRoom = util.randomInt(this.maze.getRoomCount());
-  this.addRoomToMaze(startingRoom);
+  this.stack.push(startingRoom);
+  this.maze.roomColors[startingRoom] = DepthFirstSearchGenerator.CONSIDERING;
 }
 
 DepthFirstSearchGenerator.CONSIDERING = "#8888ff";
 
-DepthFirstSearchGenerator.prototype.addRoomToMaze = function(room) {
-  this.stack.push(room);
-  this.maze.roomColors[room] = DepthFirstSearchGenerator.CONSIDERING;
-};
 DepthFirstSearchGenerator.prototype.isDone = function() {
   return this.stack.length === 0;
 };
@@ -32,12 +30,18 @@ DepthFirstSearchGenerator.prototype.step = function() {
       // back out
       self.maze.roomColors[room] = Maze.OPEN;
       self.stack.pop();
+      // clean up edge color
+      if (self.stack.length > 0) {
+        var edge = self.stack.pop();
+        self.maze.edgeColors[edge] = Maze.OPEN;
+      }
       return;
     }
     // go in a random direction
     var vector = vectors[util.randomInt(vectors.length)];
-    self.maze.edgeColors[vector.edge] = Maze.OPEN;
+    self.maze.edgeColors[vector.edge] = DepthFirstSearchGenerator.CONSIDERING;
     self.maze.roomColors[vector.room] = DepthFirstSearchGenerator.CONSIDERING;
+    self.stack.push(vector.edge);
     self.stack.push(vector.room);
     return;
   }
