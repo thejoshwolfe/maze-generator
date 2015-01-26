@@ -40,23 +40,21 @@
         <p>See <a href="https://github.com/thejoshwolfe/maze-generator">this project on github</a> for more information.</p>
         <fieldset><legend>Maze Generation</legend>
           <p>
-            Topology:
-            <label><input id="rectangleTopologyButton" type="radio" name="topology" checked>Rectangle</label>
-            <label><input id="cylinderTopologyButton" type="radio" name="topology">Cylinder</label>
-            <label><input id="torusTopologyButton" type="radio" name="topology">Torus</label>
+            Topology:<br>
+            <label><input type="radio" name="topology" id="rectangleTopologyButton" checked>Rectangle</label><br>
+            <label><input type="radio" name="topology" id="cylinderTopologyButton">Cylinder</label><br>
+            <label><input type="radio" name="topology" id="torusTopologyButton">Torus</label><br>
           </p>
           <p>
             Size: <input id="sizeXTextbox" class="numberTextbox" value="30">x<input id="sizeYTextbox" class="numberTextbox" value="30">
           </p>
           <p>
-            Algorithm:
-            <select id="algorithmCombobox">
-              <option value="DepthFirstSearchGenerator" selected="selected">Depth-First Search</option>
-              <option value="PrimGenerator">Prim</option>
-              <option value="KruskalGenerator">Kruskal</option>
-              <option value="IvyGenerator">Ivy</option>
-              <option value="DepthFirstIvyGenerator">Depth-First Ivy</option>
-            </select>
+            Algorithm:<br>
+            <label><input type="radio" name="algorithm" id="depthFirstSearchAlgorithmButton" checked>Depth-First Search</label><br>
+            <label><input type="radio" name="algorithm" id="primAlgorithmButton">Prim</label><br>
+            <label><input type="radio" name="algorithm" id="kruskalAlgorithmButton">Kruskal</label><br>
+            <label><input type="radio" name="algorithm" id="ivyAlgorithmButton">Ivy</label><br>
+            <label><input type="radio" name="algorithm" id="depthFirstIvyAlgorithmButton">Depth-First Ivy</label><br>
           </p>
           <p>
             Data: <input id="mazeSerializationTextbox" placeholder="(copy/paste)" style="width:100px">

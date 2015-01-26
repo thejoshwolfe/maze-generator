@@ -3,9 +3,14 @@
   var cylinderTopologyButton = window.document.getElementById("cylinderTopologyButton");
   var torusTopologyButton = window.document.getElementById("torusTopologyButton");
 
-  var algorithmCombobox = window.document.getElementById("algorithmCombobox");
   var sizeXTextbox = window.document.getElementById("sizeXTextbox");
   var sizeYTextbox = window.document.getElementById("sizeYTextbox");
+
+  var depthFirstSearchAlgorithmButton = window.document.getElementById("depthFirstSearchAlgorithmButton");
+  var primAlgorithmButton = window.document.getElementById("primAlgorithmButton");
+  var kruskalAlgorithmButton = window.document.getElementById("kruskalAlgorithmButton");
+  var ivyAlgorithmButton = window.document.getElementById("ivyAlgorithmButton");
+  var depthFirstIvyAlgorithmButton = window.document.getElementById("depthFirstIvyAlgorithmButton");
 
   var mazeCanvas = window.document.getElementById("mazeCanvas");
 
@@ -30,11 +35,6 @@
   var wallsPerVertexCanvas = window.document.getElementById("wallsPerVertexCanvas");
 
   var algorithms = {
-    "KruskalGenerator": KruskalGenerator,
-    "PrimGenerator": PrimGenerator,
-    "DepthFirstSearchGenerator": DepthFirstSearchGenerator,
-    "IvyGenerator": IvyGenerator,
-    "DepthFirstIvyGenerator": DepthFirstIvyGenerator,
   };
   var previousTopology;
   var generator;
@@ -65,9 +65,18 @@
       }
       throw new Error();
     })();
-    var algorithmFunction = algorithms[algorithmCombobox.value];
     var sizeX = parseInt(sizeXTextbox.value, 10) || 1;
     var sizeY = parseInt(sizeYTextbox.value, 10) || 1;
+    var algorithmFunction = (function() {
+      switch (true) {
+        case depthFirstSearchAlgorithmButton.checked: return DepthFirstSearchGenerator;
+        case primAlgorithmButton.checked: return PrimGenerator;
+        case kruskalAlgorithmButton.checked: return KruskalGenerator;
+        case ivyAlgorithmButton.checked: return IvyGenerator;
+        case depthFirstIvyAlgorithmButton.checked: return DepthFirstIvyGenerator;
+      }
+      throw new Error();
+    })();
     if (!refresh) {
       // if nothing's changed, don't reset
       if (previousTopology === topology &&
@@ -105,12 +114,19 @@
   function waitAndInitGenerator() {
     setTimeout(initGenerator, 0);
   }
+
   rectangleTopologyButton.addEventListener("click", waitAndInitGenerator);
   cylinderTopologyButton.addEventListener("click", waitAndInitGenerator);
   torusTopologyButton.addEventListener("click", waitAndInitGenerator);
-  algorithmCombobox.addEventListener("change", waitAndInitGenerator);
+
   sizeXTextbox.addEventListener("keydown", waitAndInitGenerator);
   sizeYTextbox.addEventListener("keydown", waitAndInitGenerator);
+
+  depthFirstSearchAlgorithmButton.addEventListener("click", waitAndInitGenerator);
+  primAlgorithmButton.addEventListener("click", waitAndInitGenerator);
+  kruskalAlgorithmButton.addEventListener("click", waitAndInitGenerator);
+  ivyAlgorithmButton.addEventListener("click", waitAndInitGenerator);
+  depthFirstIvyAlgorithmButton.addEventListener("click", waitAndInitGenerator);
 
   var heldDownMouseButton = null;
   var scrollDragAnchorX;
