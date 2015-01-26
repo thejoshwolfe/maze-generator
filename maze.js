@@ -308,7 +308,10 @@ function MazeRenderer(canvas, sizeX, sizeY) {
   this.canvas = canvas;
   this.sizeX = sizeX;
   this.sizeY = sizeY;
-  this.cellSize = 32;
+  var cellSizeByZoom = 1000 / Math.max(sizeX, sizeY);
+  var clampedCellSize = Math.max(10, Math.min(32, cellSizeByZoom));
+  // make it an integer multiple of 2, or else the rendering has seems.
+  this.cellSize = clampedCellSize >> 1 << 1;
   this.tessellationOffsetX = this.cellSize/2;
   this.tessellationOffsetY = this.cellSize/2;
   this.tessellationMinX = 0;
