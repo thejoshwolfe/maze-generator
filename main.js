@@ -78,7 +78,8 @@
       throw new Error();
     })();
     if (!refresh) {
-      // if nothing's changed, don't reset
+      // if nothing's changed, don't reset.
+      // this happens when using the arrow keys in the size boxes.
       if (previousTopology === topology &&
           previousAlgorithm === algorithmFunction &&
           maze.sizeX === sizeX &&

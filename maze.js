@@ -308,7 +308,7 @@ function MazeRenderer(canvas, sizeX, sizeY) {
   this.canvas = canvas;
   this.sizeX = sizeX;
   this.sizeY = sizeY;
-  this.cellSize = 10;
+  this.cellSize = 32;
   this.tessellationOffsetX = this.cellSize/2;
   this.tessellationOffsetY = this.cellSize/2;
   this.tessellationMinX = 0;
