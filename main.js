@@ -32,9 +32,11 @@
   var doorsPerRoomCheckbox = window.document.getElementById("doorsPerRoomCheckbox");
   var doorsPerRoomCanvas = window.document.getElementById("doorsPerRoomCanvas");
   var doorsPerRoom = null;
+  var doorsPerRoomHighlightIndex = null;
   var wallsPerVertexCheckbox = window.document.getElementById("wallsPerVertexCheckbox");
   var wallsPerVertexCanvas = window.document.getElementById("wallsPerVertexCanvas");
   var wallsPerVertex = null;
+  var wallsPerVertexHighlightIndex = null;
 
   var previousTopology;
   var generator;
@@ -349,34 +351,52 @@
     setTimeout(updateStatistics, 0);
   });
   doorsPerRoomCanvas.addEventListener("mousemove", function(event) {
-    var row = getHistogramRow(doorsPerRoom, eventToMouseY(event, doorsPerRoomCanvas));
-    if (row == null) return;
-    doorsPerRoomHighlightMaze = new (maze.constructor)(maze.sizeX, maze.sizeY);
-    row.values.forEach(function(i) {
-      doorsPerRoomHighlightMaze.roomColors[i] = "#ff4444";
-    });
+    doorsPerRoomHighlightIndex = getHistogramRowIndex(doorsPerRoom, eventToMouseY(event, doorsPerRoomCanvas));
+    updateDoorsPerRoomHighlightMaze();
     renderMaze();
+    renderHistogram(doorsPerRoomCanvas, doorsPerRoom, doorsPerRoomHighlightIndex);
   });
   doorsPerRoomCanvas.addEventListener("mouseout", function() {
     doorsPerRoomHighlightMaze = null;
+    doorsPerRoomHighlightIndex = null;
     renderMaze();
+    renderHistogram(doorsPerRoomCanvas, doorsPerRoom, doorsPerRoomHighlightIndex);
   });
+  function updateDoorsPerRoomHighlightMaze() {
+    if (doorsPerRoomHighlightIndex != null) {
+      doorsPerRoomHighlightMaze = new (maze.constructor)(maze.sizeX, maze.sizeY);
+      doorsPerRoom[doorsPerRoomHighlightIndex].values.forEach(function(i) {
+        doorsPerRoomHighlightMaze.roomColors[i] = "#ff4444";
+      });
+    } else {
+      doorsPerRoomHighlightMaze = null;
+    }
+  }
   wallsPerVertexCheckbox.addEventListener("click", function() {
     setTimeout(updateStatistics, 0);
   });
   wallsPerVertexCanvas.addEventListener("mousemove", function(event) {
-    var row = getHistogramRow(wallsPerVertex, eventToMouseY(event, wallsPerVertexCanvas));
-    if (row == null) return;
-    wallsPerVertexHighlightMaze = new (maze.constructor)(maze.sizeX, maze.sizeY);
-    row.values.forEach(function(i) {
-      wallsPerVertexHighlightMaze.vertexColors[i] = "#ff4444";
-    });
+    wallsPerVertexHighlightIndex = getHistogramRowIndex(wallsPerVertex, eventToMouseY(event, wallsPerVertexCanvas));
+    updateWallsPerVertexHighlightMaze();
     renderMaze();
+    renderHistogram(wallsPerVertexCanvas, wallsPerVertex, wallsPerVertexHighlightIndex);
   });
   wallsPerVertexCanvas.addEventListener("mouseout", function() {
     wallsPerVertexHighlightMaze = null;
+    wallsPerVertexHighlightIndex = null;
     renderMaze();
+    renderHistogram(wallsPerVertexCanvas, wallsPerVertex, wallsPerVertexHighlightIndex);
   });
+  function updateWallsPerVertexHighlightMaze() {
+    if (wallsPerVertexHighlightIndex != null) {
+      wallsPerVertexHighlightMaze = new (maze.constructor)(maze.sizeX, maze.sizeY);
+      wallsPerVertex[wallsPerVertexHighlightIndex].values.forEach(function(i) {
+        wallsPerVertexHighlightMaze.vertexColors[i] = "#ff4444";
+      });
+    } else {
+      wallsPerVertexHighlightMaze = null;
+    }
+  }
 
   function stepGenerator() {
     generator.step();
@@ -387,6 +407,8 @@
   }
 
   function refreshDisplay() {
+    updateDoorsPerRoomHighlightMaze();
+    updateWallsPerVertexHighlightMaze();
     renderMaze();
     updateStatistics();
   }
@@ -453,7 +475,7 @@
         doorsPerRoom[doorCount].values.push(i);
       }
     }
-    renderHistogram(doorsPerRoomCanvas, doorsPerRoom);
+    renderHistogram(doorsPerRoomCanvas, doorsPerRoom, doorsPerRoomHighlightIndex);
 
     wallsPerVertex = null;
     if (wallsPerVertexCheckbox.checked) {
@@ -472,7 +494,7 @@
         wallsPerVertex[wallCount].values.push(i);
       }
     }
-    renderHistogram(wallsPerVertexCanvas, wallsPerVertex);
+    renderHistogram(wallsPerVertexCanvas, wallsPerVertex, wallsPerVertexHighlightIndex);
   }
 
   var histogramFontHeight = 16;
@@ -480,7 +502,7 @@
   // the api to get the height including low-hanging glyphs like "g" are not supported yet
   // (except for ExperimentalCanvasFeatures in chrome).
   var moreRealisticHistorgramTextHeight = histogramFontHeight * 1.2;
-  function renderHistogram(canvas, data) {
+  function renderHistogram(canvas, data, highlightRowIndex) {
     if (data == null) {
       canvas.width = 0;
       canvas.height = 0;
@@ -515,9 +537,13 @@
       context.strokeText(data[i].label, maxLabelWidth, moreRealisticHistorgramTextHeight * i);
     }
     var maxBarLength = graphWidth - maxLabelWidth;
-    context.fillStyle = "#8888ff";
     context.textAlign = "left";
     for (var i = 0; i < data.length; i++) {
+      if (i === highlightRowIndex) {
+        context.fillStyle = "#ff8888";
+      } else {
+        context.fillStyle = "#8888ff";
+      }
       var barWidth = maxBarLength * data[i].values.length / longestPossibleBar;
       var x = maxLabelWidth;
       var y = moreRealisticHistorgramTextHeight * i;
@@ -525,10 +551,13 @@
       context.strokeText(data[i].values.length, x + 3, y);
     }
   }
-  function getHistogramRow(histogramData, pixelY) {
+  function getHistogramRowIndex(histogramData, pixelY) {
     // if we get mouse events for a hidden histogram for some reason.
     if (histogramData == null) return null;
-    return histogramData[Math.floor(pixelY / moreRealisticHistorgramTextHeight)];
+    var index = Math.floor(pixelY / moreRealisticHistorgramTextHeight);
+    // bounds check
+    if (!(0 <= index && index < histogramData.length)) return null;
+    return index;
   }
   function setStatisticsHighlight(mazeStructure, historgramRow) {
   }
