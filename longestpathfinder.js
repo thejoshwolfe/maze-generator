@@ -66,11 +66,14 @@ LongestPathFinder.prototype.step = function() {
     } else {
       // die
       path.pop(); // foward room
+      // the failing edge should be red
+      var failureColor = "#ff4444";
       while (path.length > 0) {
         var fowardEdge = path.pop();
-        self.roomHighlightMaze.edgeColors[fowardEdge] = LongestPathFinder.FAILURE;
+        self.roomHighlightMaze.edgeColors[fowardEdge] = failureColor;
+        failureColor = LongestPathFinder.FAILURE;
         var room = path.pop();
-        self.roomHighlightMaze.roomColors[room] = LongestPathFinder.FAILURE;
+        self.roomHighlightMaze.roomColors[room] = failureColor;
       }
       self.traversals.splice(i, 1);
     }
