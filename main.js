@@ -407,10 +407,10 @@
   }
 
   function refreshDisplay() {
+    updateStatistics();
     updateDoorsPerRoomHighlightMaze();
     updateWallsPerVertexHighlightMaze();
     renderMaze();
-    updateStatistics();
   }
   function renderMaze() {
     var context = mazeCanvas.getContext("2d");
