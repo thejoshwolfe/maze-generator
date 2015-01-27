@@ -348,6 +348,7 @@ MazeRenderer.prototype.render = function(maze, options) {
   var tessellationOffsetY = this.tessellationOffsetY;
 
   // roomColors
+  var roomSpacing = options.roomSpacing != null ? options.roomSpacing : wallThickness;
   var roomCount = maze.getRoomCount();
   for (var i = 0; i < roomCount; i++) {
     var color = maze.roomColors[i];
@@ -362,8 +363,8 @@ MazeRenderer.prototype.render = function(maze, options) {
         var pixelY = tessellationOffsetY + y * cellSize;
         if (-cellSize <= pixelX && pixelX <= canvasWidth + cellSize &&
             -cellSize <= pixelY && pixelY <= canvasHeight + cellSize) {
-          context.fillRect(pixelX + wallThicknessHalf, pixelY + wallThicknessHalf,
-                           cellSize - wallThickness, cellSize - wallThickness);
+          context.fillRect(pixelX + roomSpacing/2, pixelY + roomSpacing/2,
+                           cellSize - roomSpacing, cellSize - roomSpacing);
         }
       }
     }

@@ -31,11 +31,11 @@
 
   var doorsPerRoomCheckbox = window.document.getElementById("doorsPerRoomCheckbox");
   var doorsPerRoomCanvas = window.document.getElementById("doorsPerRoomCanvas");
+  var doorsPerRoom = null;
   var wallsPerVertexCheckbox = window.document.getElementById("wallsPerVertexCheckbox");
   var wallsPerVertexCanvas = window.document.getElementById("wallsPerVertexCanvas");
+  var wallsPerVertex = null;
 
-  var algorithms = {
-  };
   var previousTopology;
   var generator;
   var previousAlgorithm;
@@ -52,7 +52,8 @@
   var pathFinderPoints = [];
   var pathHighlightMaze = null;
 
-  var statisticsHighlightMaze = null;
+  var doorsPerRoomHighlightMaze = null;
+  var wallsPerVertexHighlightMaze = null;
 
   var experimentalMode = null;
 
@@ -107,6 +108,8 @@
     longestPathHighlightMaze = null;
     pathHighlightMaze = null;
     pathFinderPoints = [];
+    doorsPerRoomHighlightMaze = null;
+    wallsPerVertexHighlightMaze = null;
 
     experimentalMode = null;
 
@@ -152,12 +155,12 @@
       renderPath();
     } else {
       // right or middle click
-      scrollDragAnchorX = eventToMouseX(event);
-      scrollDragAnchorY = eventToMouseY(event);
+      scrollDragAnchorX = eventToMouseX(event, mazeCanvas);
+      scrollDragAnchorY = eventToMouseY(event, mazeCanvas);
     }
   });
-  function eventToMouseX(event) { return event.clientX - mazeCanvas.getBoundingClientRect().left; }
-  function eventToMouseY(event) { return event.clientY - mazeCanvas.getBoundingClientRect().top; }
+  function eventToMouseX(event, canvas) { return event.clientX - canvas.getBoundingClientRect().left; }
+  function eventToMouseY(event, canvas) { return event.clientY - canvas.getBoundingClientRect().top; }
   // why on the window instead of the canvas? see http://stackoverflow.com/questions/5418740/jquery-mouseup-outside-window-possible/5419564#5419564
   window.addEventListener("mouseup", function() {
     heldDownMouseButton = null;
@@ -177,16 +180,18 @@
       renderPath();
     } else if (heldDownMouseButton === 2) {
       // right- or middle-click drag
-      var deltaX = eventToMouseX(event) - scrollDragAnchorX;
-      var deltaY = eventToMouseY(event) - scrollDragAnchorY;
-      scrollDragAnchorX = eventToMouseX(event);
-      scrollDragAnchorY = eventToMouseY(event);
+      var x = eventToMouseX(event, mazeCanvas);
+      var y = eventToMouseY(event, mazeCanvas);
+      var deltaX = x - scrollDragAnchorX;
+      var deltaY = y - scrollDragAnchorY;
+      scrollDragAnchorX = x;
+      scrollDragAnchorY = y;
       mazeRenderer.scroll(deltaX, deltaY);
       refreshDisplay();
     }
   });
   function getRoomFromMouseEvent(event) {
-    var roomLocation = mazeRenderer.getRoomLocationFromPixelLocation(eventToMouseX(event), eventToMouseY(event));
+    var roomLocation = mazeRenderer.getRoomLocationFromPixelLocation(eventToMouseX(event, mazeCanvas), eventToMouseY(event, mazeCanvas));
     if (roomLocation == null) return null;
     return maze.getRoomFromLocation(roomLocation.x, roomLocation.y);
   }
@@ -343,8 +348,34 @@
   doorsPerRoomCheckbox.addEventListener("click", function() {
     setTimeout(updateStatistics, 0);
   });
+  doorsPerRoomCanvas.addEventListener("mousemove", function(event) {
+    var row = getHistogramRow(doorsPerRoom, eventToMouseY(event, doorsPerRoomCanvas));
+    if (row == null) return;
+    doorsPerRoomHighlightMaze = new (maze.constructor)(maze.sizeX, maze.sizeY);
+    row.values.forEach(function(i) {
+      doorsPerRoomHighlightMaze.roomColors[i] = "#ff4444";
+    });
+    renderMaze();
+  });
+  doorsPerRoomCanvas.addEventListener("mouseout", function() {
+    doorsPerRoomHighlightMaze = null;
+    renderMaze();
+  });
   wallsPerVertexCheckbox.addEventListener("click", function() {
     setTimeout(updateStatistics, 0);
+  });
+  wallsPerVertexCanvas.addEventListener("mousemove", function(event) {
+    var row = getHistogramRow(wallsPerVertex, eventToMouseY(event, wallsPerVertexCanvas));
+    if (row == null) return;
+    wallsPerVertexHighlightMaze = new (maze.constructor)(maze.sizeX, maze.sizeY);
+    row.values.forEach(function(i) {
+      wallsPerVertexHighlightMaze.vertexColors[i] = "#ff4444";
+    });
+    renderMaze();
+  });
+  wallsPerVertexCanvas.addEventListener("mouseout", function() {
+    wallsPerVertexHighlightMaze = null;
+    renderMaze();
   });
 
   function stepGenerator() {
@@ -356,6 +387,10 @@
   }
 
   function refreshDisplay() {
+    renderMaze();
+    updateStatistics();
+  }
+  function renderMaze() {
     var context = mazeCanvas.getContext("2d");
     context.fillStyle = "#ffffff";
     context.fillRect(0, 0, mazeCanvas.width, mazeCanvas.height);
@@ -366,6 +401,13 @@
       mazeRenderer.render(pathHighlightMaze);
     }
     mazeRenderer.render(maze);
+    if (doorsPerRoomHighlightMaze != null) {
+      mazeRenderer.render(doorsPerRoomHighlightMaze, {roomSpacing:mazeRenderer.cellSize / 2});
+    }
+    if (wallsPerVertexHighlightMaze != null) {
+      mazeRenderer.render(wallsPerVertexHighlightMaze, {vertexThickness:mazeRenderer.cellSize / 2});
+    }
+
     var nowDone = generator == null;
     if (nowDone !== wasDone) {
       setEnabled(stepButton, !nowDone);
@@ -391,11 +433,10 @@
       setEnabled(resetExperimentsButton, experimentalMode != null);
     }
     wasDone = nowDone;
-    updateStatistics();
   }
 
   function updateStatistics() {
-    var doorsPerRoom = null;
+    doorsPerRoom = null;
     if (doorsPerRoomCheckbox.checked) {
       doorsPerRoom = [
         {label: "0", values: []},
@@ -414,7 +455,7 @@
     }
     renderHistogram(doorsPerRoomCanvas, doorsPerRoom);
 
-    var wallsPerVertex = null;
+    wallsPerVertex = null;
     if (wallsPerVertexCheckbox.checked) {
       wallsPerVertex = [
         {label: "0", values: []},
@@ -423,7 +464,6 @@
         {label: "3", values: []},
         {label: "4", values: []},
       ];
-      statisticsHighlightMaze = new (maze.constructor)(maze.sizeX, maze.sizeY);
       var vertexCount = maze.getVertexCount();
       for (var i = 0; i < vertexCount; i++) {
         var wallCount = maze.vertexToEdges(i).filter(function(edge) {
@@ -435,6 +475,11 @@
     renderHistogram(wallsPerVertexCanvas, wallsPerVertex);
   }
 
+  var histogramFontHeight = 16;
+  // this is a guess. as of writing this,
+  // the api to get the height including low-hanging glyphs like "g" are not supported yet
+  // (except for ExperimentalCanvasFeatures in chrome).
+  var moreRealisticHistorgramTextHeight = histogramFontHeight * 1.2;
   function renderHistogram(canvas, data) {
     if (data == null) {
       canvas.width = 0;
@@ -442,14 +487,9 @@
       return;
     }
     // figure out how big everything's going to be
-    var fontHeight = 12;
-    var font = fontHeight + "px sans-serif";
+    var font = histogramFontHeight + "px sans-serif";
     var measuringContext = canvas.getContext("2d");
     measuringContext.font = font;
-    // this is a guess. as of writing this,
-    // the api to get the height including low-hanging glyphs like "g" are not supported yet
-    // (except for ExperimentalCanvasFeatures in chrome).
-    var moreRealisticTextHeight = fontHeight * 1.2;
     var maxLabelWidth = 0;
     var longestPossibleBar = 0;
     for (var i = 0; i < data.length; i++) {
@@ -459,7 +499,7 @@
       longestPossibleBar += data[i].values.length;
     }
     var graphWidth = Math.max(300, maxLabelWidth + 200);
-    canvas.height = data.length * moreRealisticTextHeight;
+    canvas.height = data.length * moreRealisticHistorgramTextHeight;
     canvas.width = graphWidth;
 
     // reget the context after resizing the canvas?
@@ -472,7 +512,7 @@
     context.textAlign = "right";
     context.strokeStyle = "#000000";
     for (var i = 0; i < data.length; i++) {
-      context.strokeText(data[i].label, maxLabelWidth, moreRealisticTextHeight * i);
+      context.strokeText(data[i].label, maxLabelWidth, moreRealisticHistorgramTextHeight * i);
     }
     var maxBarLength = graphWidth - maxLabelWidth;
     context.fillStyle = "#8888ff";
@@ -480,10 +520,17 @@
     for (var i = 0; i < data.length; i++) {
       var barWidth = maxBarLength * data[i].values.length / longestPossibleBar;
       var x = maxLabelWidth;
-      var y = moreRealisticTextHeight * i;
-      context.fillRect(x, y, barWidth, moreRealisticTextHeight);
+      var y = moreRealisticHistorgramTextHeight * i;
+      context.fillRect(x, y, barWidth, moreRealisticHistorgramTextHeight);
       context.strokeText(data[i].values.length, x + 3, y);
     }
+  }
+  function getHistogramRow(histogramData, pixelY) {
+    // if we get mouse events for a hidden histogram for some reason.
+    if (histogramData == null) return null;
+    return histogramData[Math.floor(pixelY / moreRealisticHistorgramTextHeight)];
+  }
+  function setStatisticsHighlight(mazeStructure, historgramRow) {
   }
 
   function setEnabled(button, value) {
