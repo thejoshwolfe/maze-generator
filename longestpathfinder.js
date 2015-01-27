@@ -13,8 +13,9 @@ function LongestPathFinder(maze) {
     });
     if (vectors.length === 1) {
       var fromRoom = i;
+      var throughEdge = vectors[0].edge;
       var toRoom = vectors[0].room;
-      this.traversals.push([fromRoom, toRoom]);
+      this.traversals.push([fromRoom, throughEdge, toRoom]);
       this.roomHighlightMaze.roomColors[fromRoom] = LongestPathFinder.CANDIDATE_PATH;
     }
   }
@@ -44,7 +45,8 @@ LongestPathFinder.prototype.step = function() {
   var self = this;
   for (var i = self.traversals.length - 1; i >= 0; i--) {
     var path = self.traversals[i];
-    var backwards = path[path.length - 2];
+    var backwards = path[path.length - 3];
+    var backwardsEdge = path[path.length - 2];
     var fromRoom = path[path.length - 1];
     var openVectors = self.maze.roomToVectors(fromRoom).filter(function(vector) {
       if (vector.room === backwards) return false;
@@ -55,15 +57,21 @@ LongestPathFinder.prototype.step = function() {
     });
     if (openVectors.length === 1) {
       // advance
+      var throughEdge = openVectors[0].edge;
       var toRoom = openVectors[0].room;
+      path.push(throughEdge);
       path.push(toRoom);
+      self.roomHighlightMaze.edgeColors[backwardsEdge] = LongestPathFinder.CANDIDATE_PATH;
       self.roomHighlightMaze.roomColors[fromRoom] = LongestPathFinder.CANDIDATE_PATH;
     } else {
       // die
-      path.pop();
-      path.forEach(function(room) {
+      path.pop(); // foward room
+      while (path.length > 0) {
+        var fowardEdge = path.pop();
+        self.roomHighlightMaze.edgeColors[fowardEdge] = LongestPathFinder.FAILURE;
+        var room = path.pop();
         self.roomHighlightMaze.roomColors[room] = LongestPathFinder.FAILURE;
-      });
+      }
       self.traversals.splice(i, 1);
     }
   }
