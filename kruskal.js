@@ -1,6 +1,9 @@
 KruskalGenerator.CONSIDERING = "#aaaaaa";
 function KruskalGenerator(topology, sizeX, sizeY) {
-  this.maze = new topology(sizeX, sizeY, KruskalGenerator.CONSIDERING, Maze.OPEN);
+  this.maze = new topology(sizeX, sizeY, {
+    initialEdgeColor: KruskalGenerator.CONSIDERING,
+    initialVertexColor: Maze.FILLED,
+  });
 
   // the order in which we try to delete things
   this.edges = [];

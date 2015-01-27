@@ -1,6 +1,6 @@
 DepthFirstIvyGenerator.CONSIDERING = "#8888ff";
 function DepthFirstIvyGenerator(topology, sizeX, sizeY) {
-  this.maze = new topology(sizeX, sizeY, Maze.OPEN, Maze.OPEN);
+  this.maze = new topology(sizeX, sizeY);
 
   this.vertexHasBeenVisited = [];
   this.stack = [];
@@ -29,6 +29,7 @@ DepthFirstIvyGenerator.prototype.isDone = function() {
 DepthFirstIvyGenerator.prototype.pushBranch = function(branch) {
   this.vertexHasBeenVisited[branch.vertex] = true;
   this.stack.push(branch);
+  this.maze.vertexColors[branch.vertex] = DepthFirstIvyGenerator.CONSIDERING;
   this.maze.edgeColors[branch.edge] = DepthFirstIvyGenerator.CONSIDERING;
 };
 
@@ -46,6 +47,7 @@ DepthFirstIvyGenerator.prototype.step = function() {
     } else {
       // pop branch
       self.stack.pop();
+      self.maze.vertexColors[branch.vertex] = Maze.FILLED;
       self.maze.edgeColors[branch.edge] = Maze.FILLED;
     }
     return;

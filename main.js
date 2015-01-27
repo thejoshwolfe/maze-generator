@@ -52,6 +52,8 @@
   var pathFinderPoints = [];
   var pathHighlightMaze = null;
 
+  var statisticsHighlightMaze = null;
+
   var experimentalMode = null;
 
   initGenerator();
@@ -198,7 +200,7 @@
     if (pathFinderPoints.length === 0) {
       pathHighlightMaze = null;
     } else {
-      pathHighlightMaze = new (maze.constructor)(maze.sizeX, maze.sizeY, Maze.OPEN, Maze.OPEN);
+      pathHighlightMaze = new (maze.constructor)(maze.sizeX, maze.sizeY);
       if (pathFinderPoints.length === 1) {
         pathHighlightMaze.roomColors[pathFinderPoints[0]] = PATH_HILIGHT;
       } else {
@@ -318,7 +320,7 @@
     longestPathStopAnimation();
     longestPathFinder = null;
     if (endPoints === LongestPathFinder.IMPOSSIBLE) return;
-    longestPathHighlightMaze = new (maze.constructor)(maze.sizeX, maze.sizeY, Maze.OPEN, Maze.OPEN);
+    longestPathHighlightMaze = new (maze.constructor)(maze.sizeX, maze.sizeY);
     longestPathHighlightMaze.roomColors[endPoints[0]] = "#ff4444";
     longestPathHighlightMaze.roomColors[endPoints[1]] = "#ff4444";
   }
@@ -421,6 +423,7 @@
         {label: "3", values: []},
         {label: "4", values: []},
       ];
+      statisticsHighlightMaze = new (maze.constructor)(maze.sizeX, maze.sizeY);
       var vertexCount = maze.getVertexCount();
       for (var i = 0; i < vertexCount; i++) {
         var wallCount = maze.vertexToEdges(i).filter(function(edge) {

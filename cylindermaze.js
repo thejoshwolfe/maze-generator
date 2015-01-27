@@ -1,6 +1,6 @@
 util.inherits(CylinderMaze, Maze);
-function CylinderMaze(sizeX, sizeY, initialEdgeColor, initialRoomColor) {
-  Maze.call(this, sizeX, sizeY, initialEdgeColor, initialRoomColor);
+function CylinderMaze(sizeX, sizeY, options) {
+  Maze.call(this, sizeX, sizeY, options);
 }
 
 CylinderMaze.prototype.getEdgeCount = function() {

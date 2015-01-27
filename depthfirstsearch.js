@@ -1,5 +1,9 @@
 function DepthFirstSearchGenerator(topology, sizeX, sizeY) {
-  this.maze = new topology(sizeX, sizeY, Maze.FILLED, Maze.FILLED);
+  this.maze = new topology(sizeX, sizeY, {
+    initialRoomColor: Maze.FILLED,
+    initialEdgeColor: Maze.FILLED,
+    initialVertexColor: Maze.FILLED,
+  });
 
   // room,edge,room,edge, ..., room
   this.stack = [];

@@ -1,5 +1,5 @@
 function IvyGenerator(topology, sizeX, sizeY) {
-  this.maze = new topology(sizeX, sizeY, Maze.OPEN, Maze.OPEN);
+  this.maze = new topology(sizeX, sizeY);
 
   this.vertexHasBeenVisited = [];
   this.availableBranches = [];
@@ -21,6 +21,7 @@ IvyGenerator.prototype.isDone = function() {
 };
 IvyGenerator.prototype.visitVertex = function(vertex) {
   this.vertexHasBeenVisited[vertex] = true;
+  this.maze.vertexColors[vertex] = Maze.FILLED;
   var branches = this.maze.vertexToBranches(vertex);
   Array.prototype.push.apply(this.availableBranches, branches);
 };
