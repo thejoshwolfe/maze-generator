@@ -44,10 +44,10 @@ CylinderMaze.prototype.roomToVectors = function(room) {
   var roomLocation = this.getRoomLocation(room);
   var vectors = [
     // these are certain
-    { edge:this.getEdgeFromLocation(Maze.VERTICAL,   roomLocation.x + 0, roomLocation.y    ),
-      room:this.getRoomFromLocation(                 roomLocation.x + 1, roomLocation.y    ) },
-    { edge:this.getEdgeFromLocation(Maze.VERTICAL,   roomLocation.x - 1, roomLocation.y    ),
-      room:this.getRoomFromLocation(                 roomLocation.x - 1, roomLocation.y    ) },
+    { edge:this.getEdgeFromLocation(Maze.VERTICAL,   roomLocation.x + 0, roomLocation.y),
+      room:this.getRoomFromLocation(                 roomLocation.x + 1, roomLocation.y) },
+    { edge:this.getEdgeFromLocation(Maze.VERTICAL,   roomLocation.x - 1, roomLocation.y),
+      room:this.getRoomFromLocation(                 roomLocation.x - 1, roomLocation.y) },
   ];
 
   var edges = [

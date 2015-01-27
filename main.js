@@ -14,11 +14,11 @@
 
   var mazeCanvas = window.document.getElementById("mazeCanvas");
 
-  var goButton = window.document.getElementById("goButton");
-  var stepButton = window.document.getElementById("stepButton");
-  var beDoneButton = window.document.getElementById("beDoneButton");
-  var resetButton = window.document.getElementById("resetButton");
   var mazeSerializationTextbox = window.document.getElementById("mazeSerializationTextbox");
+  var generationGoButton = window.document.getElementById("generationGoButton");
+  var generationStepButton = window.document.getElementById("generationStepButton");
+  var generationBeDoneButton = window.document.getElementById("generationBeDoneButton");
+  var generationResetButton = window.document.getElementById("generationResetButton");
 
   var longestPathGoButton = window.document.getElementById("longestPathGoButton");
   var longestPathStepButton = window.document.getElementById("longestPathStepButton");
@@ -227,7 +227,7 @@
     refreshDisplay();
   }
 
-  stepButton.addEventListener("click", function() {
+  generationStepButton.addEventListener("click", function() {
     stepGenerator();
     refreshDisplay();
   });
@@ -236,7 +236,7 @@
     return 1 + Math.floor(1000 / Math.max(maze.sizeX, maze.sizeY));
   }
 
-  goButton.addEventListener("click", function() {
+  generationGoButton.addEventListener("click", function() {
     if (generator == null) initGenerator(true);
     if (animationInterval == null) {
       // go
@@ -245,7 +245,7 @@
         stepGenerator();
         refreshDisplay();
       }, animationSpeed);
-      goButton.textContent = "Stop";
+      generationGoButton.textContent = "Stop";
     } else {
       stopAnimation();
     }
@@ -254,9 +254,9 @@
     if (animationInterval == null) return;
     clearInterval(animationInterval);
     animationInterval = null;
-    goButton.textContent = "Go";
+    generationGoButton.textContent = "Go";
   }
-  beDoneButton.addEventListener("click", function() {
+  generationBeDoneButton.addEventListener("click", function() {
     stopAnimation();
     if (generator == null) initGenerator(true);
     while (generator != null) {
@@ -264,7 +264,7 @@
     }
     refreshDisplay();
   });
-  resetButton.addEventListener("click", function() {
+  generationResetButton.addEventListener("click", function() {
     initGenerator(true);
   });
 
@@ -432,7 +432,7 @@
 
     var nowDone = generator == null;
     if (nowDone !== wasDone) {
-      setEnabled(stepButton, !nowDone);
+      setEnabled(generationStepButton, !nowDone);
 
       mazeSerialization = nowDone ? maze.getSerialization() : "";
       mazeSerializationTextbox.value = mazeSerialization;

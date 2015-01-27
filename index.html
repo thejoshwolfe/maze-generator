@@ -35,6 +35,7 @@
     <div style="padding-left:375px;">
       <div style="overflow-y:auto; position:fixed; top:0; height:100%; margin-left:-375px; left:375px; width:375px;">
         <p>See <a href="https://github.com/thejoshwolfe/maze-generator">this project on github</a> for more information.</p>
+
         <fieldset><legend>Maze Generation</legend>
           <p>
             Topology:<br>
@@ -56,10 +57,10 @@
           <p>
             Data: <input id="mazeSerializationTextbox" placeholder="(copy/paste)" style="width:100px">
           </p>
-          <button id="goButton">Go</button>
-          <button id="stepButton">Step</button>
-          <button id="beDoneButton">Be Done</button>
-          <button id="resetButton">Reset</button>
+          <button id="generationGoButton">Go</button>
+          <button id="generationStepButton">Step</button>
+          <button id="generationBeDoneButton">Be Done</button>
+          <button id="generationResetButton">Reset</button>
         </fieldset>
 
         <fieldset><legend>Longest Path</legend>
@@ -86,6 +87,7 @@
           </div>
         </fieldset>
       </div>
+
       <div style="overflow-x:auto; overflow-y:auto; width:100%; height:100%;">
         <canvas id="mazeCanvas" height=160 width=160></canvas>
       </div>
