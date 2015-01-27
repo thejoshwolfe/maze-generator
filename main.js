@@ -223,14 +223,19 @@
     refreshDisplay();
   });
 
+  function getAnimationSpeed() {
+    return 1 + Math.floor(1000 / Math.max(maze.sizeX, maze.sizeY));
+  }
+
   goButton.addEventListener("click", function() {
     if (generator == null) initGenerator(true);
     if (animationInterval == null) {
       // go
+      var animationSpeed = getAnimationSpeed();
       animationInterval = setInterval(function() {
         stepGenerator();
         refreshDisplay();
-      }, 1);
+      }, animationSpeed);
       goButton.textContent = "Stop";
     } else {
       stopAnimation();
@@ -267,10 +272,11 @@
   longestPathGoButton.addEventListener("click", function() {
     if (longestPathAnimationInterval == null) {
       // go
+      var animationSpeed = getAnimationSpeed();
       longestPathAnimationInterval = setInterval(function() {
         longestPathStep();
         refreshDisplay();
-      }, 1);
+      }, animationSpeed);
       longestPathGoButton.textContent = "Stop";
     } else {
       longestPathStopAnimation();
@@ -312,7 +318,7 @@
     longestPathStopAnimation();
     longestPathFinder = null;
     if (endPoints === LongestPathFinder.IMPOSSIBLE) return;
-    longestPathHighlightMaze = new Maze(maze.sizeX, maze.sizeY, Maze.OPEN, Maze.OPEN);
+    longestPathHighlightMaze = new (maze.constructor)(maze.sizeX, maze.sizeY, Maze.OPEN, Maze.OPEN);
     longestPathHighlightMaze.roomColors[endPoints[0]] = "#ff4444";
     longestPathHighlightMaze.roomColors[endPoints[1]] = "#ff4444";
   }
