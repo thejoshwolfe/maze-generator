@@ -154,8 +154,8 @@
       scrollDragAnchorY = eventToMouseY(event);
     }
   });
-  function eventToMouseX(event) { return event.pageX - mazeCanvas.offsetLeft; }
-  function eventToMouseY(event) { return event.pageY - mazeCanvas.offsetTop; }
+  function eventToMouseX(event) { return event.clientX - mazeCanvas.getBoundingClientRect().left; }
+  function eventToMouseY(event) { return event.clientY - mazeCanvas.getBoundingClientRect().top; }
   // why on the window instead of the canvas? see http://stackoverflow.com/questions/5418740/jquery-mouseup-outside-window-possible/5419564#5419564
   window.addEventListener("mouseup", function() {
     heldDownMouseButton = null;
