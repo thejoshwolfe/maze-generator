@@ -286,7 +286,7 @@ Maze.fromSerialization = function(string) {
     }
     throw new Error();
   })();
-  var maze = new topology(sizeX, sizeY, Maze.OPEN, Maze.OPEN);
+  var maze = new topology(sizeX, sizeY, {initialVertexColor: Maze.FILLED});
 
   var zero = Maze.hexEncoding.charCodeAt(0);
   var bitArray = [];
