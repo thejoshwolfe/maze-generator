@@ -198,7 +198,7 @@
     if (pathFinderPoints.length === 0) {
       pathHighlightMaze = null;
     } else {
-      pathHighlightMaze = new Maze(maze.sizeX, maze.sizeY, Maze.OPEN, Maze.OPEN);
+      pathHighlightMaze = new (maze.constructor)(maze.sizeX, maze.sizeY, Maze.OPEN, Maze.OPEN);
       if (pathFinderPoints.length === 1) {
         pathHighlightMaze.roomColors[pathFinderPoints[0]] = PATH_HILIGHT;
       } else {
