@@ -193,19 +193,24 @@
     event.preventDefault();
   });
 
+  var PATH_HILIGHT = "#ffaaaa";
   function renderPath() {
     if (pathFinderPoints.length === 0) {
       pathHighlightMaze = null;
     } else {
       pathHighlightMaze = new Maze(maze.sizeX, maze.sizeY, Maze.OPEN, Maze.OPEN);
       if (pathFinderPoints.length === 1) {
-        pathHighlightMaze.roomColors[pathFinderPoints[0]] = "#ffaaaa";
+        pathHighlightMaze.roomColors[pathFinderPoints[0]] = PATH_HILIGHT;
       } else {
         var path = dijkstraSearch(maze, pathFinderPoints[0], pathFinderPoints[1]);
         if (path != null) {
-          path.forEach(function(room) {
-            pathHighlightMaze.roomColors[room] = "#ffaaaa";
-          });
+          while (true) {
+            var room = path.pop();
+            pathHighlightMaze.roomColors[room] = PATH_HILIGHT;
+            if (path.length === 0) break;
+            var edge = path.pop();
+            pathHighlightMaze.edgeColors[edge] = PATH_HILIGHT;
+          }
         }
       }
     }

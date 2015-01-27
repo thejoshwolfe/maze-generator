@@ -10,6 +10,7 @@ function dijkstraSearch(maze, start, end) {
   // starting node
   nodeQueue.push({
     room:start,
+    fromEdge:null,
     parent:null,
   });
   visitedRooms[start] = true;
@@ -29,6 +30,7 @@ function dijkstraSearch(maze, start, end) {
       var neighborRoom = vectors[i].room;
       nodeQueue.push({
         room:neighborRoom,
+        fromEdge:vectors[i].edge,
         parent:fromNode,
       });
       visitedRooms[neighborRoom] = true;
@@ -41,6 +43,9 @@ function dijkstraSearch(maze, start, end) {
     var path = [];
     while (node != null) {
       path.push(node.room);
+      if (node.fromEdge != null) {
+        path.push(node.fromEdge);
+      }
       node = node.parent;
     }
     path.reverse();
