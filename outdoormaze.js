@@ -76,7 +76,7 @@ OutdoorMaze.prototype.roomToVectors = function(room) {
         room:this.getRoomFromLocation(x, 0),
       });
       result.push({
-        edge:this.getEdgeFromLocation(Maze.HORIZONTAL, x, this.sizeY),
+        edge:this.getEdgeFromLocation(Maze.HORIZONTAL, x, this.sizeY - 1),
         room:this.getRoomFromLocation(x, this.sizeY - 1),
       });
     }
@@ -87,7 +87,7 @@ OutdoorMaze.prototype.roomToVectors = function(room) {
         room:this.getRoomFromLocation(0, y),
       });
       result.push({
-        edge:this.getEdgeFromLocation(Maze.VERTICAL, this.sizeX, y),
+        edge:this.getEdgeFromLocation(Maze.VERTICAL, this.sizeX - 1, y),
         room:this.getRoomFromLocation(this.sizeX - 1, y),
       });
     }
