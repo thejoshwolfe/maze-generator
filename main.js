@@ -60,7 +60,12 @@
 
   var experimentalMode = null;
 
-  initGenerator();
+  specifySerialization(getSerializationFromUrl());
+  if (mazeSerialization === "") {
+    // the url serialization was not present or didn't work.
+    // start from scratch.
+    initGenerator();
+  }
   function initGenerator(refresh) {
     stopAnimation();
     var topology = (function() {
@@ -73,16 +78,7 @@
     })();
     var sizeX = parseInt(sizeXTextbox.value, 10) || 1;
     var sizeY = parseInt(sizeYTextbox.value, 10) || 1;
-    var algorithmFunction = (function() {
-      switch (true) {
-        case depthFirstSearchAlgorithmButton.checked: return DepthFirstSearchGenerator;
-        case primAlgorithmButton.checked: return PrimGenerator;
-        case kruskalAlgorithmButton.checked: return KruskalGenerator;
-        case ivyAlgorithmButton.checked: return IvyGenerator;
-        case depthFirstIvyAlgorithmButton.checked: return DepthFirstIvyGenerator;
-      }
-      throw new Error();
-    })();
+    var algorithmFunction = getAlgorithmFromUi();
     if (!refresh) {
       // if nothing's changed, don't reset.
       // this happens when using the arrow keys in the size boxes.
@@ -93,10 +89,19 @@
         return;
       }
     }
-    previousTopology = topology;
     previousAlgorithm = algorithmFunction;
     generator = new algorithmFunction(topology, sizeX, sizeY);
     setMaze(generator.maze);
+  }
+  function getAlgorithmFromUi() {
+    switch (true) {
+      case depthFirstSearchAlgorithmButton.checked: return DepthFirstSearchGenerator;
+      case primAlgorithmButton.checked: return PrimGenerator;
+      case kruskalAlgorithmButton.checked: return KruskalGenerator;
+      case ivyAlgorithmButton.checked: return IvyGenerator;
+      case depthFirstIvyAlgorithmButton.checked: return DepthFirstIvyGenerator;
+    }
+    throw new Error();
   }
   function setMaze(newMaze) {
     maze = newMaze;
@@ -273,11 +278,7 @@
 
   mazeSerializationTextbox.addEventListener("keydown", function() {
     setTimeout(function() {
-      if (mazeSerialization === mazeSerializationTextbox.value) return;
-      var candidateMaze = Maze.fromSerialization(mazeSerializationTextbox.value);
-      if (candidateMaze == null) return;
-      generator = null;
-      setMaze(candidateMaze);
+      specifySerialization(mazeSerializationTextbox.value);
     }, 0);
   });
 
@@ -562,8 +563,6 @@
     if (!(0 <= index && index < histogramData.length)) return null;
     return index;
   }
-  function setStatisticsHighlight(mazeStructure, historgramRow) {
-  }
 
   function setEnabled(button, value) {
     if (value) {
@@ -571,5 +570,24 @@
     } else {
       button.setAttribute("disabled", "");
     }
+  }
+
+  function specifySerialization(newSerialization) {
+    if (mazeSerialization === newSerialization) return;
+    var candidateMaze = Maze.fromSerialization(newSerialization);
+    if (candidateMaze == null) return;
+    generator = null;
+    // make sure we think this new maze is a cool new idea
+    wasDone = false;
+    setMaze(candidateMaze);
+    // The algorithm is not stored in the data, so read the algorithm from the ui.
+    // This prevents resetting the maze if you click on the already-selected default algorithm radio button
+    // after loading the page with a serialization data url.
+    previousAlgorithm = getAlgorithmFromUi();
+  }
+  function getSerializationFromUrl() {
+    var match = /#data=(.*)/.exec(location.hash);
+    if (match == null) return "";
+    return match[1];
   }
 })();
