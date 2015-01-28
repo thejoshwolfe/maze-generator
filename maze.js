@@ -341,7 +341,10 @@ function MazeRenderer(canvas, sizeX, sizeY) {
 MazeRenderer.prototype.render = function(maze, options) {
   if (options == null) options = {};
   var context = this.canvas.getContext("2d");
+  var sizeX = this.sizeX;
+  var sizeY = this.sizeY;
   var cellSize = this.cellSize;
+  var cellSizeHalf = cellSize / 2;
   var wallThickness = this.wallThickness;
   var wallThicknessHalf = wallThickness / 2;
   var canvasWidth = this.canvas.width;
@@ -355,18 +358,31 @@ MazeRenderer.prototype.render = function(maze, options) {
   for (var i = 0; i < roomCount; i++) {
     var color = maze.roomColors[i];
     if (color === Maze.OPEN) continue;
-    var roomLocation = maze.getRoomLocation(i);
     context.fillStyle = color;
-    for (var tessellationIndexX = this.tessellationMinX; tessellationIndexX <= this.tessellationMaxX; tessellationIndexX++) {
-      for (var tessellationIndexY = this.tessellationMinY; tessellationIndexY <= this.tessellationMaxY; tessellationIndexY++) {
-        var x = roomLocation.x + tessellationIndexX * this.sizeX;
-        var y = roomLocation.y + tessellationIndexY * this.sizeY;
-        var pixelX = tessellationOffsetX + x * cellSize;
-        var pixelY = tessellationOffsetY + y * cellSize;
-        if (-cellSize <= pixelX && pixelX <= canvasWidth + cellSize &&
-            -cellSize <= pixelY && pixelY <= canvasHeight + cellSize) {
-          context.fillRect(pixelX + roomSpacing/2, pixelY + roomSpacing/2,
-                           cellSize - roomSpacing, cellSize - roomSpacing);
+    if (i === maze.outdoorRoom) {
+      // horizontal borders cover the corners
+      [-cellSizeHalf, cellSizeHalf + sizeY * cellSize].forEach(function(y) {
+        context.fillRect(-cellSizeHalf + wallThicknessHalf, y + wallThicknessHalf,
+                         (sizeX + 2) * cellSize - wallThickness, cellSize - wallThickness);
+      });
+      // vertical borders do not cover the corners
+      [-cellSizeHalf, cellSizeHalf + sizeX * cellSize].forEach(function(x) {
+        context.fillRect(x + wallThicknessHalf, cellSizeHalf - wallThicknessHalf,
+                         cellSize - wallThickness, sizeY * cellSize + wallThickness);
+      });
+    } else {
+      var roomLocation = maze.getRoomLocation(i);
+      for (var tessellationIndexX = this.tessellationMinX; tessellationIndexX <= this.tessellationMaxX; tessellationIndexX++) {
+        for (var tessellationIndexY = this.tessellationMinY; tessellationIndexY <= this.tessellationMaxY; tessellationIndexY++) {
+          var x = roomLocation.x + tessellationIndexX * this.sizeX;
+          var y = roomLocation.y + tessellationIndexY * this.sizeY;
+          var pixelX = tessellationOffsetX + x * cellSize;
+          var pixelY = tessellationOffsetY + y * cellSize;
+          if (-cellSize <= pixelX && pixelX <= canvasWidth + cellSize &&
+              -cellSize <= pixelY && pixelY <= canvasHeight + cellSize) {
+            context.fillRect(pixelX + roomSpacing/2, pixelY + roomSpacing/2,
+                             cellSize - roomSpacing, cellSize - roomSpacing);
+          }
         }
       }
     }
