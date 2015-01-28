@@ -3,6 +3,7 @@
     <title>Maze Generators</title>
     <script src="util.js"></script>
     <script src="maze.js"></script>
+    <script src="outdoormaze.js"></script>
     <script src="cylindermaze.js"></script>
     <script src="torusmaze.js"></script>
     <script src="kruskal.js"></script>
@@ -39,7 +40,9 @@
         <fieldset><legend>Maze Generation</legend>
           <p>
             Topology:<br>
-            <label><input type="radio" name="topology" id="rectangleTopologyButton" checked>Rectangle</label><br>
+            <label><input type="radio" name="topology" id="rectangleTopologyButton" checked>Rectangle</label>
+            <label><input type="checkbox" id="rectangleOutdoorButton">With Outdoors</label>
+            <br>
             <label><input type="radio" name="topology" id="cylinderTopologyButton">Cylinder</label><br>
             <label><input type="radio" name="topology" id="torusTopologyButton">Torus</label><br>
           </p>

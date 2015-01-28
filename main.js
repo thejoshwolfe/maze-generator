@@ -1,5 +1,6 @@
 (function() {
   var rectangleTopologyButton = window.document.getElementById("rectangleTopologyButton");
+  var rectangleOutdoorButton = window.document.getElementById("rectangleOutdoorButton");
   var cylinderTopologyButton = window.document.getElementById("cylinderTopologyButton");
   var torusTopologyButton = window.document.getElementById("torusTopologyButton");
 
@@ -64,7 +65,7 @@
     stopAnimation();
     var topology = (function() {
       switch (true) {
-        case rectangleTopologyButton.checked: return Maze;
+        case rectangleTopologyButton.checked: return rectangleOutdoorButton.checked ? OutdoorMaze : Maze;
         case cylinderTopologyButton.checked: return CylinderMaze;
         case torusTopologyButton.checked: return TorusMaze;
       }
@@ -100,7 +101,8 @@
   function setMaze(newMaze) {
     maze = newMaze;
     previousTopology = maze.constructor;
-    rectangleTopologyButton.checked = previousTopology === Maze;
+    rectangleTopologyButton.checked = previousTopology === Maze || previousTopology === OutdoorMaze;
+    rectangleOutdoorButton.checked = previousTopology === OutdoorMaze;
     cylinderTopologyButton.checked = previousTopology === CylinderMaze;
     torusTopologyButton.checked = previousTopology === TorusMaze;
     sizeXTextbox.value = maze.sizeX.toString();
@@ -124,6 +126,7 @@
   }
 
   rectangleTopologyButton.addEventListener("click", waitAndInitGenerator);
+  rectangleOutdoorButton.addEventListener("click", waitAndInitGenerator);
   cylinderTopologyButton.addEventListener("click", waitAndInitGenerator);
   torusTopologyButton.addEventListener("click", waitAndInitGenerator);
 

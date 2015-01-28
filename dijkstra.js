@@ -1,5 +1,4 @@
 function dijkstraSearch(maze, start, end) {
-  var endLocation = maze.getRoomLocation(end);
   var nodeQueue = [];
   var visitedRooms = [];
   var roomCount = maze.getRoomCount();

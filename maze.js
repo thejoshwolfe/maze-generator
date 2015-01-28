@@ -255,6 +255,7 @@ Maze.prototype.getSerialization = function() {
   var topologySerialization = (function() {
     switch (self.constructor) {
       case Maze: return "rectangle";
+      case OutdoorMaze: return "outdoor";
       case CylinderMaze: return "cylinder";
       case TorusMaze: return "torus";
     }
@@ -270,7 +271,7 @@ Maze.prototype.getSerialization = function() {
   }
   return serialization;
 };
-Maze.decodeRegex = new RegExp("^(rectangle|cylinder|torus),(\\d+),(\\d+),([" + Maze.hexEncoding + "]*)$");
+Maze.decodeRegex = new RegExp("^(rectangle|outdoor|cylinder|torus),(\\d+),(\\d+),([" + Maze.hexEncoding + "]*)$");
 Maze.fromSerialization = function(string) {
   var match = Maze.decodeRegex.exec(string);
   if (match == null) return null;
@@ -281,6 +282,7 @@ Maze.fromSerialization = function(string) {
   var topology = (function() {
     switch (topologySerialization) {
       case "rectangle": return Maze;
+      case "outdoor": return OutdoorMaze;
       case "cylinder": return CylinderMaze;
       case "torus": return TorusMaze;
     }
