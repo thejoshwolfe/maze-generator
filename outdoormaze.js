@@ -11,11 +11,11 @@ OutdoorMaze.prototype.getEdgeCount = function() {
 OutdoorMaze.prototype.getEdgeFromLocation = function(orientation, x, y) {
   if (orientation === Maze.HORIZONTAL) {
     // horizontal
-    return x * (this.sizeY + 1) + y;
+    return x * (this.sizeY + 1) + y + 1;
   } else {
     // vertical
     var horizontalEdgeCount = this.sizeX * (this.sizeY + 1);
-    return horizontalEdgeCount + x * this.sizeY + y;
+    return horizontalEdgeCount + (x + 1) * this.sizeY + y;
   }
 };
 OutdoorMaze.prototype.getEdgeLocation = function(edge) {
@@ -68,7 +68,30 @@ OutdoorMaze.prototype.getVertexFromLocation = function(x, y) {
 OutdoorMaze.prototype.roomToVectors = function(room) {
   if (room === this.outdoorRoom) {
     // come in from the border
-    return this.getBorderBranches().map
+    var result = [];
+    // top and bottom
+    for (var x = 0; x < this.sizeX; x++) {
+      result.push({
+        edge:this.getEdgeFromLocation(Maze.HORIZONTAL, x, -1),
+        room:this.getRoomFromLocation(x, 0),
+      });
+      result.push({
+        edge:this.getEdgeFromLocation(Maze.HORIZONTAL, x, this.sizeY),
+        room:this.getRoomFromLocation(x, this.sizeY - 1),
+      });
+    }
+    // left and right
+    for (var y = 0; y < this.sizeY; y++) {
+      result.push({
+        edge:this.getEdgeFromLocation(Maze.VERTICAL, -1, y),
+        room:this.getRoomFromLocation(0, y),
+      });
+      result.push({
+        edge:this.getEdgeFromLocation(Maze.VERTICAL, this.sizeX, y),
+        room:this.getRoomFromLocation(this.sizeX - 1, y),
+      });
+    }
+    return result;
   } else {
     var roomLocation = this.getRoomLocation(room);
     return [
