@@ -170,7 +170,7 @@ Maze.prototype.vertexToBranches = function(vertex) {
 Maze.prototype.getBorderBranches = function() {
   var branches = [];
   if (this.sizeY > 1) {
-    for (var x = 0; x < this.sizeX - 2; x++) {
+    for (var x = 0; x < this.sizeX - 1; x++) {
       branches.push({
         vertex:this.getVertexFromLocation(x, 0),
         edge:this.getEdgeFromLocation(Maze.VERTICAL, x, 0),
@@ -182,7 +182,7 @@ Maze.prototype.getBorderBranches = function() {
     }
   }
   if (this.sizeX > 1) {
-    for (var y = 0; y < this.sizeY - 2; y++) {
+    for (var y = 0; y < this.sizeY - 1; y++) {
       branches.push({
         vertex:this.getVertexFromLocation(0, y),
         edge:this.getEdgeFromLocation(Maze.HORIZONTAL, 0, y),

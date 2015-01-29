@@ -20,9 +20,6 @@ function KruskalGenerator(topology, sizeX, sizeY) {
     this.roomToParentRoom[i] = i;
   }
 }
-KruskalGenerator.prototype.isDone = function() {
-  return this.edgesToConsider.length === 0;
-};
 KruskalGenerator.prototype.getParent = function(room) {
   var parent = this.roomToParentRoom[room];
   if (parent === room) return parent;
@@ -30,18 +27,24 @@ KruskalGenerator.prototype.getParent = function(room) {
   this.roomToParentRoom[room] = grandParent;
   return grandParent;
 };
-KruskalGenerator.prototype.mergeRooms = function(room1, room2) {
+KruskalGenerator.prototype.maybeMergeRooms = function(room1, room2) {
   var parent1 = this.getParent(room1);
   var parent2 = this.getParent(room2);
   if (parent1 === parent2) return false;
   this.roomToParentRoom[parent2] = parent1;
   return true;
 };
-KruskalGenerator.prototype.step = function() {
-  if (this.edgesToConsider.length === 0) return;
-  var edge = util.popRandom(this.edgesToConsider);
+KruskalGenerator.prototype.getOptions = function() {
+  if (this.edgesToConsider.length === 0) return null;
+  return {
+    type: "edge",
+    values: this.edgesToConsider,
+  };
+};
+KruskalGenerator.prototype.doOption = function(index) {
+  var edge = util.popIndex(this.edgesToConsider, index);
   var roomPair = this.maze.edgeToRoomPair(edge);
-  var theMergeHappened = this.mergeRooms(roomPair[0], roomPair[1]);
+  var theMergeHappened = this.maybeMergeRooms(roomPair[0], roomPair[1]);
   if (theMergeHappened) {
     this.maze.edgeColors[edge] = Maze.OPEN;
   } else {

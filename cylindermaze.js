@@ -104,7 +104,7 @@ CylinderMaze.prototype.getBorderBranches = function() {
   // only vertical branches from the border
   var branches = [];
   if (this.sizeY > 1) {
-    for (var x = 0; x < this.sizeX - 2; x++) {
+    for (var x = 0; x < this.sizeX; x++) {
       branches.push({
         vertex:this.getVertexFromLocation(x, 0),
         edge:this.getEdgeFromLocation(Maze.VERTICAL, x, 0),

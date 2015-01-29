@@ -16,9 +16,6 @@ function IvyGenerator(topology, sizeX, sizeY) {
     }
   }
 }
-IvyGenerator.prototype.isDone = function() {
-  return this.availableBranches.length === 0;
-};
 IvyGenerator.prototype.visitVertex = function(vertex) {
   this.vertexHasBeenVisited[vertex] = true;
   this.maze.vertexColors[vertex] = Maze.FILLED;
@@ -26,12 +23,17 @@ IvyGenerator.prototype.visitVertex = function(vertex) {
   Array.prototype.push.apply(this.availableBranches, branches);
 };
 
-IvyGenerator.prototype.step = function() {
-  while (this.availableBranches.length > 0) {
-    var branch = util.popRandom(this.availableBranches);
-    if (this.vertexHasBeenVisited[branch.vertex]) continue;
+IvyGenerator.prototype.getOptions = function() {
+  if (this.availableBranches.length === 0) return null;
+  return {
+    type: "branch",
+    values: this.availableBranches,
+  };
+};
+IvyGenerator.prototype.doOption = function(index) {
+  var branch = util.popIndex(this.availableBranches, index);
+  if (!this.vertexHasBeenVisited[branch.vertex]) {
     this.maze.edgeColors[branch.edge] = Maze.FILLED;
     this.visitVertex(branch.vertex);
-    return;
   }
 };

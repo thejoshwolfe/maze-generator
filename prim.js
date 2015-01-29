@@ -15,9 +15,6 @@ function PrimGenerator(topology, sizeX, sizeY) {
 
   this.startedYet = false;
 }
-PrimGenerator.prototype.isDone = function() {
-  return this.startedYet && this.transitionVectors.length === 0;
-};
 
 PrimGenerator.prototype.addRoomToMaze = function(room) {
   this.includedRooms[room] = true;
@@ -32,20 +29,32 @@ PrimGenerator.prototype.addRoomToMaze = function(room) {
   }
 };
 
-PrimGenerator.prototype.step = function() {
+PrimGenerator.prototype.getOptions = function() {
   if (!this.startedYet) {
     // pick a starting room
-    var startingRoom = Math.floor(Math.random() * this.maze.getRoomCount());
+    return {
+      type: "room",
+      values: util.range(this.maze.getRoomCount()),
+    };
+  }
+  if (this.transitionVectors.length === 0) return null;
+  return {
+    type: "vector",
+    values: this.transitionVectors,
+  };
+};
+PrimGenerator.prototype.doOption = function(index) {
+  if (!this.startedYet) {
+    // pick a starting room
+    var startingRoom = index;
     this.addRoomToMaze(startingRoom);
     this.startedYet = true;
     return;
   }
-  while (this.transitionVectors.length > 0) {
-    var vector = util.popRandom(this.transitionVectors);
-    if (this.includedRooms[vector.room]) continue;
+  var vector = util.popIndex(this.transitionVectors, index);
+  if (!this.includedRooms[vector.room]) {
     // open the door
     this.maze.edgeColors[vector.edge] = Maze.OPEN;
     this.addRoomToMaze(vector.room);
-    return;
   }
 };

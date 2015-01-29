@@ -41,6 +41,7 @@
 
   var previousTopology;
   var generator;
+  var generatorOptions;
   var previousAlgorithm;
   var maze;
   var mazeSerialization = "";
@@ -92,7 +93,13 @@
     }
     previousAlgorithm = algorithmFunction;
     generator = new algorithmFunction(topology, sizeX, sizeY);
-    setMaze(generator.maze);
+    generatorOptions = generator.getOptions();
+    var newMaze = generator.maze;
+    if (generatorOptions == null) {
+      // well that was easy. we're already done.
+      generator = null;
+    }
+    setMaze(newMaze);
   }
   function getAlgorithmFromUi() {
     switch (true) {
@@ -412,8 +419,14 @@
   }
 
   function stepGenerator() {
-    generator.step();
-    if (generator.isDone()) {
+    if (generatorOptions != null) {
+      // let's do something
+      var index = util.randomInt(generatorOptions.values.length);
+      generator.doOption(index);
+    }
+    generatorOptions = generator.getOptions();
+    if (generatorOptions == null) {
+      // and now we're done
       generator = null;
       stopAnimation();
     }
