@@ -106,6 +106,7 @@
   }
   function setMaze(newMaze) {
     maze = newMaze;
+    window._debug_maze = newMaze;
     previousTopology = maze.constructor;
     rectangleTopologyButton.checked = previousTopology === Maze;
     outdoorTopologyButton.checked = previousTopology === OutdoorMaze;

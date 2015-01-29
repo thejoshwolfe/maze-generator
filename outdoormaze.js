@@ -64,6 +64,41 @@ OutdoorMaze.prototype.getVertexLocation = function(vertex) {
 OutdoorMaze.prototype.getVertexFromLocation = function(x, y) {
   return (this.sizeY + 1) * (x + 1) + (y + 1);
 };
+OutdoorMaze.prototype.vertexToBranches = function(vertex) {
+  var vertexLocation = this.getVertexLocation(vertex);
+  var x = vertexLocation.x;
+  var y = vertexLocation.y;
+  var branches = [];
+  if (x < this.sizeX - 1) {
+    branches.push({
+      vertex:this.getVertexFromLocation(x + 1, y),
+      edge:this.getEdgeFromLocation(Maze.HORIZONTAL, x + 1, y),
+    });
+  }
+  if (x > -1) {
+    branches.push({
+      vertex:this.getVertexFromLocation(x - 1, y),
+      edge:this.getEdgeFromLocation(Maze.HORIZONTAL, x, y),
+    });
+  }
+  if (y < this.sizeY - 1) {
+    branches.push({
+      vertex:this.getVertexFromLocation(x, y + 1),
+      edge:this.getEdgeFromLocation(Maze.VERTICAL, x, y + 1),
+    });
+  }
+  if (y > -1) {
+    branches.push({
+      vertex:this.getVertexFromLocation(x, y - 1),
+      edge:this.getEdgeFromLocation(Maze.VERTICAL, x, y),
+    });
+  }
+  return branches;
+};
+OutdoorMaze.prototype.getBorderBranches = function() {
+  // there are not branches in from the outdoors
+  return [];
+};
 
 OutdoorMaze.prototype.roomToVectors = function(room) {
   if (room === this.outdoorRoom) {
