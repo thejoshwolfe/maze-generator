@@ -13,12 +13,10 @@ function PrimGenerator(topology, sizeX, sizeY) {
 
   this.transitionVectors = [];
 
-  // pick a starting room
-  var startingRoom = Math.floor(Math.random() * this.maze.getRoomCount());
-  this.addRoomToMaze(startingRoom);
+  this.startedYet = false;
 }
 PrimGenerator.prototype.isDone = function() {
-  return this.transitionVectors.length === 0;
+  return this.startedYet && this.transitionVectors.length === 0;
 };
 
 PrimGenerator.prototype.addRoomToMaze = function(room) {
@@ -35,6 +33,13 @@ PrimGenerator.prototype.addRoomToMaze = function(room) {
 };
 
 PrimGenerator.prototype.step = function() {
+  if (!this.startedYet) {
+    // pick a starting room
+    var startingRoom = Math.floor(Math.random() * this.maze.getRoomCount());
+    this.addRoomToMaze(startingRoom);
+    this.startedYet = true;
+    return;
+  }
   while (this.transitionVectors.length > 0) {
     var vector = util.popRandom(this.transitionVectors);
     if (this.includedRooms[vector.room]) continue;

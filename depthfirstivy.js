@@ -5,25 +5,10 @@ function DepthFirstIvyGenerator(topology, sizeX, sizeY) {
   this.vertexHasBeenVisited = [];
   this.stack = [];
 
-  // pick a random starging point around the borders
-  var branches = this.maze.getBorderBranches();
-  if (branches.length > 0) {
-    var startingBranch = branches[util.randomInt(branches.length)];
-    this.pushBranch(startingBranch);
-  } else {
-    // start at a random vertex
-    var vertexCount = this.maze.getVertexCount();
-    if (vertexCount !== 0) {
-      var startingVertex = util.randomInt(vertexCount);
-      this.vertexHasBeenVisited[startingVertex] = true;
-      var branches = this.maze.vertexToBranches(startingVertex);
-      var startingBranch = branches[util.randomInt(branches.length)];
-      this.pushBranch(startingBranch);
-    }
-  }
+  this.startedYet = false;
 }
 DepthFirstIvyGenerator.prototype.isDone = function() {
-  return this.stack.length === 0;
+  return this.startedYet && this.stack.length === 0;
 };
 
 DepthFirstIvyGenerator.prototype.pushBranch = function(branch) {
@@ -35,6 +20,26 @@ DepthFirstIvyGenerator.prototype.pushBranch = function(branch) {
 
 DepthFirstIvyGenerator.prototype.step = function() {
   var self = this;
+  if (!self.startedYet) {
+    // pick a random starging point around the borders
+    var branches = this.maze.getBorderBranches();
+    if (branches.length > 0) {
+      var startingBranch = branches[util.randomInt(branches.length)];
+      this.pushBranch(startingBranch);
+    } else {
+      // start at a random vertex
+      var vertexCount = this.maze.getVertexCount();
+      if (vertexCount !== 0) {
+        var startingVertex = util.randomInt(vertexCount);
+        this.vertexHasBeenVisited[startingVertex] = true;
+        var branches = this.maze.vertexToBranches(startingVertex);
+        var startingBranch = branches[util.randomInt(branches.length)];
+        this.pushBranch(startingBranch);
+      }
+    }
+    this.startedYet = true;
+    return;
+  }
   while (self.stack.length > 0) {
     var branch = self.stack[self.stack.length - 1];
     var branches = self.maze.vertexToBranches(branch.vertex);

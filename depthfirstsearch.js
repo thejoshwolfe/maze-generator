@@ -8,21 +8,26 @@ function DepthFirstSearchGenerator(topology, sizeX, sizeY) {
   // room,edge,room,edge, ..., room
   this.stack = [];
   this.doneRooms = [];
-
-  // pick a starting room
-  var startingRoom = util.randomInt(this.maze.getRoomCount());
-  this.stack.push(startingRoom);
-  this.maze.roomColors[startingRoom] = DepthFirstSearchGenerator.CONSIDERING;
+  this.startedYet = false;
 }
 
 DepthFirstSearchGenerator.CONSIDERING = "#8888ff";
 
 DepthFirstSearchGenerator.prototype.isDone = function() {
-  return this.stack.length === 0;
+  return this.startedYet && this.stack.length === 0;
 };
 
 DepthFirstSearchGenerator.prototype.step = function() {
   var self = this;
+
+  if (!self.startedYet) {
+    // pick a starting room
+    var startingRoom = util.randomInt(this.maze.getRoomCount());
+    self.stack.push(startingRoom);
+    self.maze.roomColors[startingRoom] = DepthFirstSearchGenerator.CONSIDERING;
+    self.startedYet = true;
+    return;
+  }
   while (self.stack.length > 0) {
     var room = self.stack[self.stack.length - 1];
     var vectors = self.maze.roomToVectors(room).filter(function(vector) {
