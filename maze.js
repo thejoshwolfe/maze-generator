@@ -362,13 +362,13 @@ MazeRenderer.prototype.render = function(maze, options) {
     if (i === maze.outdoorRoom) {
       // horizontal borders cover the corners
       [-cellSizeHalf, cellSizeHalf + sizeY * cellSize].forEach(function(y) {
-        context.fillRect(-cellSizeHalf + wallThicknessHalf, y + wallThicknessHalf,
-                         (sizeX + 2) * cellSize - wallThickness, cellSize - wallThickness);
+        context.fillRect(-cellSizeHalf + roomSpacing/2, y + roomSpacing/2,
+                         (sizeX + 2) * cellSize - roomSpacing, cellSize - roomSpacing);
       });
       // vertical borders do not cover the corners
       [-cellSizeHalf, cellSizeHalf + sizeX * cellSize].forEach(function(x) {
-        context.fillRect(x + wallThicknessHalf, cellSizeHalf - wallThicknessHalf,
-                         cellSize - wallThickness, sizeY * cellSize + wallThickness);
+        context.fillRect(x + roomSpacing/2, cellSizeHalf - roomSpacing/2,
+                         cellSize - roomSpacing, sizeY * cellSize + roomSpacing);
       });
     } else {
       var roomLocation = maze.getRoomLocation(i);

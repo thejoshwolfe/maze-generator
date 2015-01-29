@@ -472,13 +472,25 @@
         {label: "2", values: []},
         {label: "3", values: []},
         {label: "4", values: []},
+        {label: "?", values: []},
       ];
       var roomCount = maze.getRoomCount();
       for (var i = 0; i < roomCount; i++) {
         var doorCount = maze.roomToVectors(i).filter(function(vector) {
           return maze.edgeColors[vector.edge] === Maze.OPEN;
         }).length;
-        doorsPerRoom[doorCount].values.push(i);
+        if (doorCount < 5) {
+          doorsPerRoom[doorCount].values.push(i);
+        } else {
+          // outdoor rooms can have an arbitrary number of rooms
+          // we'll need another for outdoor cylinders
+          doorsPerRoom[5].values.push(i);
+          doorsPerRoom[5].label = doorCount.toString();
+        }
+      }
+      if (doorsPerRoom[5].values.length === 0) {
+        // usually blank, so don't show it
+        doorsPerRoom.pop();
       }
     }
     renderHistogram(doorsPerRoomCanvas, doorsPerRoom, doorsPerRoomHighlightIndex);
