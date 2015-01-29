@@ -6,13 +6,11 @@ function KruskalGenerator(topology, sizeX, sizeY) {
   });
 
   // the order in which we try to delete things
-  this.edges = [];
+  this.edgesToConsider = [];
   var edgeCount = this.maze.getEdgeCount();
   for (var i = 0; i < edgeCount; i++) {
-    this.edges.push(i);
+    this.edgesToConsider.push(i);
   }
-  util.shuffle(this.edges);
-  this.edgesCursor = 0;
 
   // map from each room to another room connected to it
   this.roomToParentRoom = [];
@@ -23,7 +21,7 @@ function KruskalGenerator(topology, sizeX, sizeY) {
   }
 }
 KruskalGenerator.prototype.isDone = function() {
-  return this.edgesCursor >= this.edges.length;
+  return this.edgesToConsider.length === 0;
 };
 KruskalGenerator.prototype.getParent = function(room) {
   var parent = this.roomToParentRoom[room];
@@ -40,15 +38,13 @@ KruskalGenerator.prototype.mergeRooms = function(room1, room2) {
   return true;
 };
 KruskalGenerator.prototype.step = function() {
-  while (this.edgesCursor < this.edges.length) {
-    var edge = this.edges[this.edgesCursor++];
-    var roomPair = this.maze.edgeToRoomPair(edge);
-    var theMergeHappened = this.mergeRooms(roomPair[0], roomPair[1]);
-    if (theMergeHappened) {
-      this.maze.edgeColors[edge] = Maze.OPEN;
-    } else {
-      this.maze.edgeColors[edge] = Maze.FILLED;
-    }
-    return;
+  if (this.edgesToConsider.length === 0) return;
+  var edge = util.popRandom(this.edgesToConsider);
+  var roomPair = this.maze.edgeToRoomPair(edge);
+  var theMergeHappened = this.mergeRooms(roomPair[0], roomPair[1]);
+  if (theMergeHappened) {
+    this.maze.edgeColors[edge] = Maze.OPEN;
+  } else {
+    this.maze.edgeColors[edge] = Maze.FILLED;
   }
 };

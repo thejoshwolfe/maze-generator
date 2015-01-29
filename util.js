@@ -1,13 +1,4 @@
 window.util = {
-  shuffle: function(array) {
-    for (var i = 0; i < array.length; i++) {
-      var j = Math.floor(Math.random() * (array.length - i)) + i;
-      var tmp = array[j];
-      array[j] = array[i];
-      array[i] = tmp;
-    }
-  },
-
   inherits: function(ctor, superCtor) {
     // copied from nodejs's util.js
     ctor.super_ = superCtor;
@@ -22,7 +13,7 @@ window.util = {
   },
 
   popRandom: function(array) {
-    // like one iteration of the shuffle function
+    // swap a random item with the last item, then pop the one we just put there
     var index = Math.floor(Math.random() * array.length);
     var lastIndex = array.length - 1;
     var tmp = array[index];
