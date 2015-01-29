@@ -23,6 +23,23 @@ The Longest Path section below describes one attempt at choosing an entrance and
 The rectangle topology is what we're all used to.
 It's got a border of walls around it.
 
+### Rectangle with Outdoors
+
+Allow traversals to leave the confines of the maze.
+The maze can have any number of doorways into/out of the maze.
+
+The entire outside of the maze counts as a single room.
+This way, walking around the perimeter of the maze does not count as a loop;
+it would be like spinning around while standing in a single room.
+
+With this topology, the outdoor room can have many more than just 4 doors.
+
+### Cylinder
+
+A cylinder topology is what you find in [Pac-Man](http://en.wikipedia.org/wiki/Pac-Man).
+The right and left sides are connected together.
+For more discussion see the Torus topology below.
+
 ### Torus
 
 A torus topology is what you find in [Asteroids](http://en.wikipedia.org/wiki/Asteroids_%28video_game%29).
