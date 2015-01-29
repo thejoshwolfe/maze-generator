@@ -64,6 +64,9 @@ OutdoorMaze.prototype.getVertexLocation = function(vertex) {
 OutdoorMaze.prototype.getVertexFromLocation = function(x, y) {
   return (this.sizeY + 1) * (x + 1) + (y + 1);
 };
+OutdoorMaze.prototype.vertexToEdges = function(vertex) {
+  return this.vertexToBranches(vertex).map(function(branch) { return branch.edge; });
+};
 OutdoorMaze.prototype.vertexToBranches = function(vertex) {
   var vertexLocation = this.getVertexLocation(vertex);
   var x = vertexLocation.x;
