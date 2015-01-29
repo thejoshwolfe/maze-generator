@@ -129,8 +129,8 @@ This algorithm is to vertexes, walls, and a random starting point on the border 
 ## Longest Path
 
 In a randomly generated maze, there isn't always an obvious entrance and exit.
-In most mazes people are used to, the entracne and exit are points on the border of the maze,
-ususally represented as doorways to the outside of the maze.
+In most mazes people are used to, the entrance and exit are points on the border of the maze,
+usually represented as doorways to the outside of the maze.
 Picking an entrance and exit so as to make the maze "fun" is a difficult challenge,
 especially with the constraint that the entrance and exit must be on the border.
 
