@@ -159,9 +159,8 @@ Therefore, any traversals that arrive too soon are failures.
 
 ## Path Finding
 
-You can click two points on the maze to find the path between them.
+You can click and drag between two points on the maze to find the path between them.
 This uses [Dijkstra's algorithm](http://en.wikipedia.org/wiki/Dijkstra%27s_algorithm).
-You can also click and drag.
 
 
 ## Experiments

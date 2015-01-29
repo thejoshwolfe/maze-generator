@@ -150,7 +150,6 @@
   var scrollDragAnchorX;
   var scrollDragAnchorY;
   mazeCanvas.addEventListener("mousedown", function(event) {
-    // only normal left clicking
     if (event.shiftKey || event.ctrlKey || event.altKey) return;
     heldDownMouseButton = event.button;
     event.preventDefault();
@@ -160,10 +159,13 @@
       if (generator != null) return;
       var room = getRoomFromMouseEvent(event);
       if (room == null) return;
-      pathFinderPoints.push(room);
-      if (pathFinderPoints.length > 2) pathFinderPoints.shift();
       // double click to clear
-      if (pathFinderPoints.length === 2 && pathFinderPoints[0] === pathFinderPoints[1]) pathFinderPoints = [];
+      if (pathFinderPoints[0] === room) {
+        pathFinderPoints = [];
+      } else {
+        // this is the start point
+        pathFinderPoints = [room];
+      }
       renderPath();
     } else {
       // right or middle click
@@ -184,11 +186,16 @@
       if (generator != null) return;
       var room = getRoomFromMouseEvent(event);
       if (room == null) return;
-      if (pathFinderPoints.length < 2) {
-        pathFinderPoints.push(room);
-      } else {
-        pathFinderPoints[1] = room;
+      if (pathFinderPoints.length === 0) {
+        // dragged in from out of bounds or dragging after double-click to clear.
+        return;
       }
+      if (pathFinderPoints[pathFinderPoints.length - 1] === room) {
+        // dragging around, but hasn't left the inital room yet.
+        return;
+      }
+      // this is the end point
+      pathFinderPoints[1] = room;
       renderPath();
     } else if (heldDownMouseButton === 2) {
       // right- or middle-click drag
