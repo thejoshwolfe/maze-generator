@@ -43,7 +43,7 @@
   var generator;
   var previousAlgorithm;
   var maze;
-  var mazeSerialization;
+  var mazeSerialization = "";
   var mazeRenderer;
 
   var animationInterval = null;
