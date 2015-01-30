@@ -389,6 +389,8 @@ MazeRenderer.prototype.render = function(maze, options) {
   }
 
   // edges
+  var edgeThickness = options.edgeThickness != null ? options.edgeThickness : wallThickness;
+  var edgeThicknessHalf = edgeThickness / 2;
   var edgeCount = maze.getEdgeCount();
   for (var i = 0; i < edgeCount; i++) {
     var color = maze.edgeColors[i];
@@ -404,11 +406,11 @@ MazeRenderer.prototype.render = function(maze, options) {
         if (-cellSize <= pixelX && pixelX <= canvasWidth + cellSize &&
             -cellSize <= pixelY && pixelY <= canvasHeight + cellSize) {
           if (edgeLocation.orientation === Maze.HORIZONTAL) {
-            context.fillRect(pixelX - cellSize + wallThicknessHalf, pixelY - wallThicknessHalf,
-                             cellSize - wallThickness, wallThickness);
+            context.fillRect(pixelX - cellSize + edgeThicknessHalf, pixelY - edgeThicknessHalf,
+                             cellSize - edgeThickness, edgeThickness);
           } else {
-            context.fillRect(pixelX - wallThicknessHalf, pixelY - cellSize + wallThicknessHalf,
-                             wallThickness, cellSize - wallThickness);
+            context.fillRect(pixelX - edgeThicknessHalf, pixelY - cellSize + edgeThicknessHalf,
+                             edgeThickness, cellSize - edgeThickness);
           }
         }
       }

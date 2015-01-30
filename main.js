@@ -19,6 +19,7 @@
   var generationGoButton = window.document.getElementById("generationGoButton");
   var generationStepButton = window.document.getElementById("generationStepButton");
   var generationBeDoneButton = window.document.getElementById("generationBeDoneButton");
+  var generationInteractiveButton = window.document.getElementById("generationInteractiveButton");
   var generationResetButton = window.document.getElementById("generationResetButton");
 
   var longestPathGoButton = window.document.getElementById("longestPathGoButton");
@@ -50,6 +51,9 @@
   var animationInterval = null;
   var wasDone = true;
   var longestPathAnimationInterval = null;
+
+  var interactiveGeneration = false;
+  var mouseHotspotsHighlightMaze = null;
 
   var longestPathFinder;
   var longestPathHighlightMaze;
@@ -97,7 +101,7 @@
     var newMaze = generator.maze;
     if (generatorOptions == null) {
       // well that was easy. we're already done.
-      generator = null;
+      generatorIsDone();
     }
     setMaze(newMaze);
   }
@@ -162,18 +166,37 @@
     event.preventDefault();
     if (heldDownMouseButton === 0) {
       // left click
-      // this only works on a done maze
-      if (generator != null) return;
-      var room = getRoomFromMouseEvent(event);
-      if (room == null) return;
-      // double click to clear
-      if (pathFinderPoints[0] === room) {
-        pathFinderPoints = [];
-      } else {
-        // this is the start point
-        pathFinderPoints = [room];
+      if (generator == null) {
+        // path finding on a done maze
+        var room = getRoomFromMouseEvent(event);
+        if (room == null) return;
+        // double click to clear
+        if (pathFinderPoints[0] === room) {
+          pathFinderPoints = [];
+        } else {
+          // this is the start point
+          pathFinderPoints = [room];
+        }
+        renderPath();
+      } else if (interactiveGeneration) {
+        // interactive maze generation
+        var value = (function() {
+          switch (generatorOptions.type) {
+            case "room":
+              return getRoomFromMouseEvent(event);
+            // TODO
+            // case "edge":
+            // case "branch":
+            // case "vector":
+          }
+          throw new Error();
+        })();
+        var index = generatorOptions.values.indexOf(value);
+        if (index !== -1) {
+          stepGenerator(index);
+          refreshDisplay();
+        }
       }
-      renderPath();
     } else {
       // right or middle click
       scrollDragAnchorX = eventToMouseX(event, mazeCanvas);
@@ -287,6 +310,12 @@
       stepGenerator();
     }
     refreshDisplay();
+  });
+  generationInteractiveButton.addEventListener("click", function() {
+    setTimeout(function() {
+      interactiveGeneration = !!generationInteractiveButton.checked;
+      refreshDisplay();
+    }, 0);
   });
   generationResetButton.addEventListener("click", function() {
     initGenerator(true);
@@ -418,24 +447,31 @@
     }
   }
 
-  function stepGenerator() {
+  function stepGenerator(index) {
     if (generatorOptions != null) {
       // let's do something
-      var index = util.randomInt(generatorOptions.values.length);
+      if (index == null) {
+        // pick one at random
+        index = util.randomInt(generatorOptions.values.length);
+      }
       generator.doOption(index);
     }
     generatorOptions = generator.getOptions();
     if (generatorOptions == null) {
       // and now we're done
-      generator = null;
-      stopAnimation();
+      generatorIsDone();
     }
+  }
+  function generatorIsDone() {
+    generator = null;
+    stopAnimation();
   }
 
   function refreshDisplay() {
     updateStatistics();
     updateDoorsPerRoomHighlightMaze();
     updateWallsPerVertexHighlightMaze();
+    updateMouseHotspotsHighlightMaze();
     renderMaze();
   }
   function renderMaze() {
@@ -454,6 +490,14 @@
     }
     if (wallsPerVertexHighlightMaze != null) {
       mazeRenderer.render(wallsPerVertexHighlightMaze, {vertexThickness:mazeRenderer.cellSize / 2});
+    }
+    if (mouseHotspotsHighlightMaze != null) {
+      mazeRenderer.render(mouseHotspotsHighlightMaze, {
+        // enlarge whatever's being rendered
+        roomSpacing:     mazeRenderer.cellSize / 2,
+        edgeThickness:   mazeRenderer.cellSize / 3,
+        vertexThickness: mazeRenderer.cellSize / 2,
+      });
     }
 
     var nowDone = generator == null;
@@ -481,6 +525,29 @@
       setEnabled(resetExperimentsButton, experimentalMode != null);
     }
     wasDone = nowDone;
+  }
+
+  function updateMouseHotspotsHighlightMaze() {
+    if (generator == null || !interactiveGeneration) {
+      mouseHotspotsHighlightMaze = null;
+      return;
+    }
+    mouseHotspotsHighlightMaze = new (maze.constructor)(maze.sizeX, maze.sizeY);
+    var CLICK_ME_COLOR = "#dddd00";
+    generatorOptions.values.forEach(function(value) {
+      switch (generatorOptions.type) {
+        case "room":
+          mouseHotspotsHighlightMaze.roomColors[value] = CLICK_ME_COLOR;
+          return;
+        case "edge":
+          mouseHotspotsHighlightMaze.edgeColors[value] = CLICK_ME_COLOR;
+          return;
+        // TODO
+        // case "branch":
+        // case "vector":
+      }
+      throw new Error();
+    });
   }
 
   function updateStatistics() {
@@ -610,7 +677,7 @@
     if (mazeSerialization === newSerialization) return;
     var candidateMaze = Maze.fromSerialization(newSerialization);
     if (candidateMaze == null) return;
-    generator = null;
+    generatorIsDone();
     // make sure we think this new maze is a cool new idea
     wasDone = false;
     setMaze(candidateMaze);
