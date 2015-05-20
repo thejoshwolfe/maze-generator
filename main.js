@@ -3,6 +3,7 @@
   var outdoorTopologyButton = window.document.getElementById("outdoorTopologyButton");
   var cylinderTopologyButton = window.document.getElementById("cylinderTopologyButton");
   var torusTopologyButton = window.document.getElementById("torusTopologyButton");
+  var mobiusTopologyButton = window.document.getElementById("mobiusTopologyButton");
 
   var sizeXTextbox = window.document.getElementById("sizeXTextbox");
   var sizeYTextbox = window.document.getElementById("sizeYTextbox");
@@ -79,6 +80,7 @@
         case outdoorTopologyButton.checked: return OutdoorMaze
         case cylinderTopologyButton.checked: return CylinderMaze;
         case torusTopologyButton.checked: return TorusMaze;
+        case mobiusTopologyButton.checked: return MobiusMaze;
       }
       throw new Error();
     })();
@@ -123,6 +125,7 @@
     outdoorTopologyButton.checked = previousTopology === OutdoorMaze;
     cylinderTopologyButton.checked = previousTopology === CylinderMaze;
     torusTopologyButton.checked = previousTopology === TorusMaze;
+    mobiusTopologyButton.checked = previousTopology === MobiusMaze;
     sizeXTextbox.value = maze.sizeX.toString();
     sizeYTextbox.value = maze.sizeY.toString();
 
@@ -147,6 +150,7 @@
   outdoorTopologyButton.addEventListener("click", waitAndInitGenerator);
   cylinderTopologyButton.addEventListener("click", waitAndInitGenerator);
   torusTopologyButton.addEventListener("click", waitAndInitGenerator);
+  mobiusTopologyButton.addEventListener("click", waitAndInitGenerator);
 
   sizeXTextbox.addEventListener("keydown", waitAndInitGenerator);
   sizeYTextbox.addEventListener("keydown", waitAndInitGenerator);

@@ -258,6 +258,7 @@ Maze.prototype.getSerialization = function() {
       case OutdoorMaze: return "outdoor";
       case CylinderMaze: return "cylinder";
       case TorusMaze: return "torus";
+      case MobiusMaze: return "mobius";
     }
     throw new Error();
   })();
@@ -271,7 +272,7 @@ Maze.prototype.getSerialization = function() {
   }
   return serialization;
 };
-Maze.decodeRegex = new RegExp("^(rectangle|outdoor|cylinder|torus),(\\d+),(\\d+),([" + Maze.hexEncoding + "]*)$");
+Maze.decodeRegex = new RegExp("^(rectangle|outdoor|cylinder|torus|mobius),(\\d+),(\\d+),([" + Maze.hexEncoding + "]*)$");
 Maze.fromSerialization = function(string) {
   var match = Maze.decodeRegex.exec(string);
   if (match == null) return null;
@@ -285,6 +286,7 @@ Maze.fromSerialization = function(string) {
       case "outdoor": return OutdoorMaze;
       case "cylinder": return CylinderMaze;
       case "torus": return TorusMaze;
+      case "mobius": return MobiusMaze;
     }
     throw new Error();
   })();
@@ -374,8 +376,9 @@ MazeRenderer.prototype.render = function(maze, options) {
       var roomLocation = maze.getRoomLocation(i);
       for (var tessellationIndexX = this.tessellationMinX; tessellationIndexX <= this.tessellationMaxX; tessellationIndexX++) {
         for (var tessellationIndexY = this.tessellationMinY; tessellationIndexY <= this.tessellationMaxY; tessellationIndexY++) {
-          var x = roomLocation.x + tessellationIndexX * this.sizeX;
-          var y = roomLocation.y + tessellationIndexY * this.sizeY;
+          var tessellatedRoomLocation = this.getTessellatedRoomLocation(roomLocation.x, roomLocation.y, tessellationIndexX, tessellationIndexY);
+          var x = tessellatedRoomLocation.x;
+          var y = tessellatedRoomLocation.y;
           var pixelX = tessellationOffsetX + x * cellSize;
           var pixelY = tessellationOffsetY + y * cellSize;
           if (-cellSize <= pixelX && pixelX <= canvasWidth + cellSize &&
@@ -399,8 +402,9 @@ MazeRenderer.prototype.render = function(maze, options) {
     context.fillStyle = color;
     for (var tessellationIndexX = this.tessellationMinX; tessellationIndexX <= this.tessellationMaxX; tessellationIndexX++) {
       for (var tessellationIndexY = this.tessellationMinY; tessellationIndexY <= this.tessellationMaxY; tessellationIndexY++) {
-        var x = edgeLocation.x + tessellationIndexX * this.sizeX;
-        var y = edgeLocation.y + tessellationIndexY * this.sizeY;
+        var tessellatedEdgeLocation = this.getTessellatedEdgeLocation(edgeLocation.x, edgeLocation.y, edgeLocation.orientation, tessellationIndexX, tessellationIndexY);
+        var x = tessellatedEdgeLocation.x;
+        var y = tessellatedEdgeLocation.y;
         var pixelX = tessellationOffsetX + (x + 1) * cellSize;
         var pixelY = tessellationOffsetY + (y + 1) * cellSize;
         if (-cellSize <= pixelX && pixelX <= canvasWidth + cellSize &&
@@ -430,8 +434,9 @@ MazeRenderer.prototype.render = function(maze, options) {
     context.fillStyle = color;
     for (var tessellationIndexX = this.tessellationMinX; tessellationIndexX <= this.tessellationMaxX; tessellationIndexX++) {
       for (var tessellationIndexY = this.tessellationMinY; tessellationIndexY <= this.tessellationMaxY; tessellationIndexY++) {
-        var x = vertexLocation.x + tessellationIndexX * this.sizeX;
-        var y = vertexLocation.y + tessellationIndexY * this.sizeY;
+        var tessellatedVertexLocation = this.getTessellatedVertexLocation(vertexLocation.x, vertexLocation.y, tessellationIndexX, tessellationIndexY);
+        var x = tessellatedVertexLocation.x;
+        var y = tessellatedVertexLocation.y;
         var pixelX = tessellationOffsetX + (x + 1) * cellSize;
         var pixelY = tessellationOffsetY + (y + 1) * cellSize;
         if (-cellSize <= pixelX && pixelX <= canvasWidth + cellSize &&
@@ -475,4 +480,23 @@ MazeRenderer.prototype.getRoomLocationFromPixelLocation = function(mouseX, mouse
   if (x < 0 || x >= this.sizeX) return null;
   if (y < 0 || y >= this.sizeY) return null;
   return {x:x, y:y};
+};
+
+MazeRenderer.prototype.getTessellatedRoomLocation = function(x, y, tessellationIndexX, tessellationIndexY) {
+  return {
+    x: x + tessellationIndexX * this.sizeX,
+    y: y + tessellationIndexY * this.sizeY,
+  };
+};
+MazeRenderer.prototype.getTessellatedEdgeLocation = function(x, y, orientation, tessellationIndexX, tessellationIndexY) {
+  return {
+    x: x + tessellationIndexX * this.sizeX,
+    y: y + tessellationIndexY * this.sizeY,
+  };
+};
+MazeRenderer.prototype.getTessellatedVertexLocation = function(x, y, tessellationIndexX, tessellationIndexY) {
+  return {
+    x: x + tessellationIndexX * this.sizeX,
+    y: y + tessellationIndexY * this.sizeY,
+  };
 };
