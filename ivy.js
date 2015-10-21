@@ -1,5 +1,5 @@
 function IvyGenerator(topology, sizeX, sizeY) {
-  this.maze = new topology(sizeX, sizeY);
+  this.maze = new Maze(topology, sizeX, sizeY);
 
   this.vertexHasBeenVisited = [];
   this.availableBranches = [];

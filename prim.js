@@ -1,5 +1,5 @@
 function PrimGenerator(topology, sizeX, sizeY) {
-  this.maze = new topology(sizeX, sizeY, {
+  this.maze = new Maze(topology, sizeX, sizeY, {
     initialRoomColor: Maze.FILLED,
     initialEdgeColor: Maze.FILLED,
     initialVertexColor: Maze.FILLED,

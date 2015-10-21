@@ -2,10 +2,17 @@ Maze.FILLED = "#000000";
 Maze.OPEN = "#ffffff";
 Maze.VERTICAL = 0;
 Maze.HORIZONTAL = 1;
-function Maze(sizeX, sizeY, options) {
+Maze.TOPOLOGY_RECTANGLE = "rectangle";
+Maze.TOPOLOGY_OUTDOOR   = "outdoor";
+Maze.TOPOLOGY_CYLINDER  = "cylinder";
+Maze.TOPOLOGY_TORUS     = "torus";
+Maze.TOPOLOGY_MOBIUS    = "mobius";
+function Maze(topology, sizeX, sizeY, options) {
   if (options == null) options = {};
+  this.topology = topology;
   this.sizeX = sizeX;
   this.sizeY = sizeY;
+  if (this.topology === Maze.TOPOLOGY_OUTDOOR) this.outdoorRoom = sizeX * sizeY;
   var initialEdgeColor = options.initialEdgeColor || Maze.OPEN;
   var initialRoomColor = options.initialRoomColor || Maze.OPEN;
   var initialVertexColor = options.initialVertexColor || Maze.OPEN;
@@ -30,73 +37,258 @@ function Maze(sizeX, sizeY, options) {
 };
 
 Maze.prototype.getEdgeCount = function() {
-  return this.sizeX * (this.sizeY - 1) + (this.sizeX - 1) * this.sizeY;
+  switch (this.topology) {
+    case Maze.TOPOLOGY_RECTANGLE: return this.sizeX * (this.sizeY - 1) + (this.sizeX - 1) * this.sizeY;
+    case Maze.TOPOLOGY_OUTDOOR:   return this.sizeX * (this.sizeY + 1) + (this.sizeX + 1) * this.sizeY;
+    case Maze.TOPOLOGY_CYLINDER:  return this.sizeX * (this.sizeY - 1) +  this.sizeX      * this.sizeY;
+    case Maze.TOPOLOGY_TORUS:     return this.sizeX *  this.sizeY      +  this.sizeX      * this.sizeY;
+    case Maze.TOPOLOGY_MOBIUS:    return this.sizeX * (this.sizeY - 1) +  this.sizeX      * this.sizeY;
+    default: throw Error();
+  }
 };
 Maze.prototype.getEdgeFromLocation = function(orientation, x, y) {
+  switch (this.topology) {
+    case Maze.TOPOLOGY_RECTANGLE:                                                                                 break;
+    case Maze.TOPOLOGY_OUTDOOR:                                                                                   break;
+    case Maze.TOPOLOGY_CYLINDER:  x = util.euclideanMod(x, this.sizeX);                                           break;
+    case Maze.TOPOLOGY_TORUS:     x = util.euclideanMod(x, this.sizeX);     y = util.euclideanMod(y, this.sizeY); break;
+    case Maze.TOPOLOGY_MOBIUS:    x = util.euclideanMod(x, this.sizeX * 2);                                       break;
+    default: throw Error();
+  }
   if (orientation === Maze.HORIZONTAL) {
     // horizontal
-    return x * (this.sizeY - 1) + y;
+    switch (this.topology) {
+      case Maze.TOPOLOGY_RECTANGLE: return x * (this.sizeY - 1) + y;
+      case Maze.TOPOLOGY_OUTDOOR:   return x * (this.sizeY + 1) + y + 1;
+      case Maze.TOPOLOGY_CYLINDER:  return x * (this.sizeY - 1) + y;
+      case Maze.TOPOLOGY_TORUS:     return x * this.sizeY + y;
+      case Maze.TOPOLOGY_MOBIUS:
+        if (x >= this.sizeX) {
+          // invert
+          x -= this.sizeX;
+          y = (this.sizeY - 1) - 1 - y;
+        }
+        return x * (this.sizeY - 1) + y;
+      default: throw Error();
+    }
   } else {
     // vertical
-    var horizontalEdgeCount = this.sizeX * (this.sizeY - 1);
-    return horizontalEdgeCount + x * this.sizeY + y;
+    switch (this.topology) {
+      case Maze.TOPOLOGY_RECTANGLE:
+        var horizontalEdgeCount = this.sizeX * (this.sizeY - 1);
+        return horizontalEdgeCount + x * this.sizeY + y;
+      case Maze.TOPOLOGY_OUTDOOR:
+        var horizontalEdgeCount = this.sizeX * (this.sizeY + 1);
+        return horizontalEdgeCount + (x + 1) * this.sizeY + y;
+      case Maze.TOPOLOGY_CYLINDER:
+        var horizontalEdgeCount = this.sizeX * (this.sizeY - 1);
+        return horizontalEdgeCount + x * this.sizeY + y;
+      case Maze.TOPOLOGY_TORUS:
+        var horizontalEdgeCount = this.sizeX * this.sizeY;
+        return horizontalEdgeCount + x * this.sizeY + y;
+      case Maze.TOPOLOGY_MOBIUS:
+        if (x >= this.sizeX) {
+          // invert
+          x -= this.sizeX;
+          y = this.sizeY - 1 - y;
+        }
+        var horizontalEdgeCount = this.sizeX * (this.sizeY - 1);
+        return horizontalEdgeCount + x * this.sizeY + y;
+      default: throw Error();
+    }
   }
 };
 Maze.prototype.getEdgeLocation = function(edge) {
   var orientation;
   var x;
   var y;
-  var horizontalEdgeCount = this.sizeX * (this.sizeY - 1);
+  var horizontalEdgeCount;
+  switch (this.topology) {
+    case Maze.TOPOLOGY_RECTANGLE: horizontalEdgeCount = this.sizeX * (this.sizeY - 1); break;
+    case Maze.TOPOLOGY_OUTDOOR:   horizontalEdgeCount = this.sizeX * (this.sizeY + 1); break;
+    case Maze.TOPOLOGY_CYLINDER:  horizontalEdgeCount = this.sizeX * (this.sizeY - 1); break;
+    case Maze.TOPOLOGY_TORUS:     horizontalEdgeCount = this.sizeX * (this.sizeY    ); break;
+    case Maze.TOPOLOGY_MOBIUS:    horizontalEdgeCount = this.sizeX * (this.sizeY - 1); break;
+    default: throw Error();
+  }
   if (edge < horizontalEdgeCount) {
     orientation = Maze.HORIZONTAL;
-    x = Math.floor(edge / (this.sizeY - 1));
-    y = edge % (this.sizeY - 1);
+    switch (this.topology) {
+      case Maze.TOPOLOGY_RECTANGLE: x = Math.floor(edge / (this.sizeY - 1)); y = edge % (this.sizeY - 1);     break;
+      case Maze.TOPOLOGY_OUTDOOR:   x = Math.floor(edge / (this.sizeY + 1)); y = edge % (this.sizeY + 1) - 1; break;
+      case Maze.TOPOLOGY_CYLINDER:  x = Math.floor(edge / (this.sizeY - 1)); y = edge % (this.sizeY - 1);     break;
+      case Maze.TOPOLOGY_TORUS:     x = Math.floor(edge / (this.sizeY    )); y = edge % (this.sizeY    );     break;
+      case Maze.TOPOLOGY_MOBIUS:    x = Math.floor(edge / (this.sizeY - 1)); y = edge % (this.sizeY - 1);     break;
+      default: throw Error();
+    }
   } else {
     edge -= horizontalEdgeCount;
     orientation = Maze.VERTICAL;
-    x = Math.floor(edge / this.sizeY);
-    y = edge % this.sizeY;
+    switch (this.topology) {
+      case Maze.TOPOLOGY_RECTANGLE: x = Math.floor(edge / this.sizeY);     y = edge % this.sizeY; break;
+      case Maze.TOPOLOGY_OUTDOOR:   x = Math.floor(edge / this.sizeY) - 1; y = edge % this.sizeY; break;
+      case Maze.TOPOLOGY_CYLINDER:  x = Math.floor(edge / this.sizeY);     y = edge % this.sizeY; break;
+      case Maze.TOPOLOGY_TORUS:     x = Math.floor(edge / this.sizeY);     y = edge % this.sizeY; break;
+      case Maze.TOPOLOGY_MOBIUS:    x = Math.floor(edge / this.sizeY);     y = edge % this.sizeY; break;
+      default: throw Error();
+    }
   }
   return {orientation:orientation, x:x, y:y};
 };
 
 Maze.prototype.getRoomCount = function() {
-  return this.sizeX * this.sizeY;
+  switch (this.topology) {
+    case Maze.TOPOLOGY_RECTANGLE: return this.sizeX * this.sizeY;
+    case Maze.TOPOLOGY_OUTDOOR:   return this.sizeX * this.sizeY + 1;
+    case Maze.TOPOLOGY_CYLINDER:  return this.sizeX * this.sizeY;
+    case Maze.TOPOLOGY_TORUS:     return this.sizeX * this.sizeY;
+    case Maze.TOPOLOGY_MOBIUS:    return this.sizeX * this.sizeY;
+    default: throw Error();
+  }
 };
 Maze.prototype.getRoomFromLocation = function(x, y) {
+  switch (this.topology) {
+    case Maze.TOPOLOGY_RECTANGLE: break;
+    case Maze.TOPOLOGY_OUTDOOR:
+      // out of bounds is outdoors
+      if (x < 0 || x >= this.sizeX ||
+          y < 0 || y >= this.sizeY) {
+        return this.outdoorRoom;
+      }
+      break;
+    case Maze.TOPOLOGY_CYLINDER:  x = util.euclideanMod(x, this.sizeX);                                       break;
+    case Maze.TOPOLOGY_TORUS:     x = util.euclideanMod(x, this.sizeX); y = util.euclideanMod(y, this.sizeY); break;
+    case Maze.TOPOLOGY_MOBIUS:
+      x = util.euclideanMod(x, this.sizeX * 2);
+      if (x >= this.sizeX) {
+        // invert
+        x -= this.sizeX;
+        y = this.sizeY - 1 - y;
+      }
+      break;
+    default: throw Error();
+  }
   return this.sizeY * x + y;
 };
 Maze.prototype.getRoomLocation = function(room) {
+  switch (this.topology) {
+    case Maze.TOPOLOGY_RECTANGLE: break;
+    case Maze.TOPOLOGY_OUTDOOR:
+      // the official "location" of the outdoors room is where you'd expect it's upper-left corner.
+      if (room === this.outdoorRoom) return {x:-1, y:-1};
+      break;
+    case Maze.TOPOLOGY_CYLINDER:  break;
+    case Maze.TOPOLOGY_TORUS:     break;
+    case Maze.TOPOLOGY_MOBIUS:    break;
+    default: throw Error();
+  }
   var x = Math.floor(room / this.sizeY);
   var y = room % this.sizeY;
   return {x:x, y:y};
 };
 
 Maze.prototype.roomToVectors = function(room) {
-  var roomLocation = this.getRoomLocation(room);
-  var edges = [
-    this.getEdgeFromLocation(Maze.VERTICAL,   roomLocation.x + 0, roomLocation.y    ),
-    this.getEdgeFromLocation(Maze.VERTICAL,   roomLocation.x - 1, roomLocation.y    ),
-    this.getEdgeFromLocation(Maze.HORIZONTAL, roomLocation.x    , roomLocation.y + 0),
-    this.getEdgeFromLocation(Maze.HORIZONTAL, roomLocation.x    , roomLocation.y - 1),
-  ];
-  var neighborLocations = [
-    {x:roomLocation.x + 1, y:roomLocation.y    },
-    {x:roomLocation.x - 1, y:roomLocation.y    },
-    {x:roomLocation.x    , y:roomLocation.y + 1},
-    {x:roomLocation.x    , y:roomLocation.y - 1},
-  ];
-  var vectors = [];
-  for (var i = 0; i < neighborLocations.length; i++) {
-    var neighborLocation = neighborLocations[i];
-    // bounds check
-    if (neighborLocation.x < 0 || neighborLocation.x >= this.sizeX) continue;
-    if (neighborLocation.y < 0 || neighborLocation.y >= this.sizeY) continue;
-    var neighbor = this.getRoomFromLocation(neighborLocation.x, neighborLocation.y);
-    vectors.push({edge:edges[i], room:neighbor});
+  switch (this.topology) {
+    case Maze.TOPOLOGY_RECTANGLE: break;
+    case Maze.TOPOLOGY_OUTDOOR:
+      if (room === this.outdoorRoom) {
+        // come in from the border
+        var result = [];
+        // top and bottom
+        for (var x = 0; x < this.sizeX; x++) {
+          result.push({
+            edge:this.getEdgeFromLocation(Maze.HORIZONTAL, x, -1),
+            room:this.getRoomFromLocation(x, 0),
+          });
+          result.push({
+            edge:this.getEdgeFromLocation(Maze.HORIZONTAL, x, this.sizeY - 1),
+            room:this.getRoomFromLocation(x, this.sizeY - 1),
+          });
+        }
+        // left and right
+        for (var y = 0; y < this.sizeY; y++) {
+          result.push({
+            edge:this.getEdgeFromLocation(Maze.VERTICAL, -1, y),
+            room:this.getRoomFromLocation(0, y),
+          });
+          result.push({
+            edge:this.getEdgeFromLocation(Maze.VERTICAL, this.sizeX - 1, y),
+            room:this.getRoomFromLocation(this.sizeX - 1, y),
+          });
+        }
+        return result;
+      }
+      break;
+    case Maze.TOPOLOGY_CYLINDER:  break;
+    case Maze.TOPOLOGY_TORUS:     break;
+    case Maze.TOPOLOGY_MOBIUS:    break;
+    default: throw Error();
   }
-  return vectors;
+  var roomLocation = this.getRoomLocation(room);
+  switch (this.topology) {
+    case Maze.TOPOLOGY_RECTANGLE:
+      var vectors = [];
+      var edges = [
+        this.getEdgeFromLocation(Maze.VERTICAL,   roomLocation.x + 0, roomLocation.y    ),
+        this.getEdgeFromLocation(Maze.VERTICAL,   roomLocation.x - 1, roomLocation.y    ),
+        this.getEdgeFromLocation(Maze.HORIZONTAL, roomLocation.x    , roomLocation.y + 0),
+        this.getEdgeFromLocation(Maze.HORIZONTAL, roomLocation.x    , roomLocation.y - 1),
+      ];
+      var neighborLocations = [
+        {x:roomLocation.x + 1, y:roomLocation.y    },
+        {x:roomLocation.x - 1, y:roomLocation.y    },
+        {x:roomLocation.x    , y:roomLocation.y + 1},
+        {x:roomLocation.x    , y:roomLocation.y - 1},
+      ];
+      for (var i = 0; i < neighborLocations.length; i++) {
+        var neighborLocation = neighborLocations[i];
+        // bounds check
+        if (neighborLocation.x < 0 || neighborLocation.x >= this.sizeX) continue;
+        if (neighborLocation.y < 0 || neighborLocation.y >= this.sizeY) continue;
+        var neighbor = this.getRoomFromLocation(neighborLocation.x, neighborLocation.y);
+        vectors.push({edge:edges[i], room:neighbor});
+      }
+      return vectors;
+    case Maze.TOPOLOGY_OUTDOOR:
+    case Maze.TOPOLOGY_TORUS:
+      return [
+        { edge:this.getEdgeFromLocation(Maze.VERTICAL,   roomLocation.x + 0, roomLocation.y    ),
+          room:this.getRoomFromLocation(                 roomLocation.x + 1, roomLocation.y    ) },
+        { edge:this.getEdgeFromLocation(Maze.VERTICAL,   roomLocation.x - 1, roomLocation.y    ),
+          room:this.getRoomFromLocation(                 roomLocation.x - 1, roomLocation.y    ) },
+        { edge:this.getEdgeFromLocation(Maze.HORIZONTAL, roomLocation.x    , roomLocation.y + 0),
+          room:this.getRoomFromLocation(                 roomLocation.x    , roomLocation.y + 1) },
+        { edge:this.getEdgeFromLocation(Maze.HORIZONTAL, roomLocation.x    , roomLocation.y - 1),
+          room:this.getRoomFromLocation(                 roomLocation.x    , roomLocation.y - 1) },
+      ];
+    case Maze.TOPOLOGY_CYLINDER:
+    case Maze.TOPOLOGY_MOBIUS:
+      var vectors = [
+        { edge:this.getEdgeFromLocation(Maze.VERTICAL,   roomLocation.x + 0, roomLocation.y),
+          room:this.getRoomFromLocation(                 roomLocation.x + 1, roomLocation.y) },
+        { edge:this.getEdgeFromLocation(Maze.VERTICAL,   roomLocation.x - 1, roomLocation.y),
+          room:this.getRoomFromLocation(                 roomLocation.x - 1, roomLocation.y) },
+      ];
+      var edges = [
+        this.getEdgeFromLocation(Maze.HORIZONTAL, roomLocation.x, roomLocation.y + 0),
+        this.getEdgeFromLocation(Maze.HORIZONTAL, roomLocation.x, roomLocation.y - 1),
+      ];
+      var neighborLocations = [
+        {x:roomLocation.x, y:roomLocation.y + 1},
+        {x:roomLocation.x, y:roomLocation.y - 1},
+      ];
+      for (var i = 0; i < neighborLocations.length; i++) {
+        var neighborLocation = neighborLocations[i];
+        // bounds check
+        if (neighborLocation.y < 0 || neighborLocation.y >= this.sizeY) continue;
+        var neighbor = this.getRoomFromLocation(neighborLocation.x, neighborLocation.y);
+        vectors.push({edge:edges[i], room:neighbor});
+      }
+      return vectors;
+    default: throw Error();
+  }
 };
+
 Maze.prototype.edgeToRoomPair = function(edge) {
   var edgeLocation = this.getEdgeLocation(edge);
   var result = [];
@@ -276,21 +468,11 @@ Maze.decodeRegex = new RegExp("^(rectangle|outdoor|cylinder|torus|mobius),(\\d+)
 Maze.fromSerialization = function(string) {
   var match = Maze.decodeRegex.exec(string);
   if (match == null) return null;
-  var topologySerialization = match[1];
+  var topology = match[1];
   var sizeX = parseInt(match[2]);
   var sizeY = parseInt(match[3]);
   var edgeData = match[4];
-  var topology = (function() {
-    switch (topologySerialization) {
-      case "rectangle": return Maze;
-      case "outdoor": return OutdoorMaze;
-      case "cylinder": return CylinderMaze;
-      case "torus": return TorusMaze;
-      case "mobius": return MobiusMaze;
-    }
-    throw new Error();
-  })();
-  var maze = new topology(sizeX, sizeY, {initialVertexColor: Maze.FILLED});
+  var maze = new Maze(topology, sizeX, sizeY, {initialVertexColor: Maze.FILLED});
 
   var zero = Maze.hexEncoding.charCodeAt(0);
   var bitArray = [];

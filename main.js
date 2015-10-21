@@ -76,11 +76,11 @@
     stopAnimation();
     var topology = (function() {
       switch (true) {
-        case rectangleTopologyButton.checked: return Maze;
-        case outdoorTopologyButton.checked: return OutdoorMaze
-        case cylinderTopologyButton.checked: return CylinderMaze;
-        case torusTopologyButton.checked: return TorusMaze;
-        case mobiusTopologyButton.checked: return MobiusMaze;
+        case rectangleTopologyButton.checked: return Maze.TOPOLOGY_RECTANGLE;
+        case outdoorTopologyButton.checked:   return Maze.TOPOLOGY_OUTDOOR;
+        case cylinderTopologyButton.checked:  return Maze.TOPOLOGY_CYLINDER;
+        case torusTopologyButton.checked:     return Maze.TOPOLOGY_TORUS;
+        case mobiusTopologyButton.checked:    return Maze.TOPOLOGY_MOBIUS;
       }
       throw new Error();
     })();
@@ -110,22 +110,22 @@
   function getAlgorithmFromUi() {
     switch (true) {
       case depthFirstSearchAlgorithmButton.checked: return DepthFirstSearchGenerator;
-      case primAlgorithmButton.checked: return PrimGenerator;
-      case kruskalAlgorithmButton.checked: return KruskalGenerator;
-      case ivyAlgorithmButton.checked: return IvyGenerator;
-      case depthFirstIvyAlgorithmButton.checked: return DepthFirstIvyGenerator;
+      case primAlgorithmButton.checked:             return PrimGenerator;
+      case kruskalAlgorithmButton.checked:          return KruskalGenerator;
+      case ivyAlgorithmButton.checked:              return IvyGenerator;
+      case depthFirstIvyAlgorithmButton.checked:    return DepthFirstIvyGenerator;
     }
     throw new Error();
   }
   function setMaze(newMaze) {
     maze = newMaze;
     window._debug_maze = newMaze;
-    previousTopology = maze.constructor;
-    rectangleTopologyButton.checked = previousTopology === Maze;
-    outdoorTopologyButton.checked = previousTopology === OutdoorMaze;
-    cylinderTopologyButton.checked = previousTopology === CylinderMaze;
-    torusTopologyButton.checked = previousTopology === TorusMaze;
-    mobiusTopologyButton.checked = previousTopology === MobiusMaze;
+    previousTopology = maze.topology;
+    rectangleTopologyButton.checked = previousTopology === Maze.TOPOLOGY_RECTANGLE;
+    outdoorTopologyButton.checked   = previousTopology === Maze.TOPOLOGY_OUTDOOR;
+    cylinderTopologyButton.checked  = previousTopology === Maze.TOPOLOGY_CYLINDER;
+    torusTopologyButton.checked     = previousTopology === Maze.TOPOLOGY_TORUS;
+    mobiusTopologyButton.checked    = previousTopology === Maze.TOPOLOGY_MOBIUS;
     sizeXTextbox.value = maze.sizeX.toString();
     sizeYTextbox.value = maze.sizeY.toString();
 
@@ -258,7 +258,7 @@
     if (pathFinderPoints.length === 0) {
       pathHighlightMaze = null;
     } else {
-      pathHighlightMaze = new (maze.constructor)(maze.sizeX, maze.sizeY);
+      pathHighlightMaze = new Maze(maze.topology, maze.sizeX, maze.sizeY);
       if (pathFinderPoints.length === 1) {
         pathHighlightMaze.roomColors[pathFinderPoints[0]] = PATH_HILIGHT;
       } else {
@@ -380,7 +380,7 @@
     longestPathStopAnimation();
     longestPathFinder = null;
     if (endPoints === LongestPathFinder.IMPOSSIBLE) return;
-    longestPathHighlightMaze = new (maze.constructor)(maze.sizeX, maze.sizeY);
+    longestPathHighlightMaze = new Maze(maze.topology, maze.sizeX, maze.sizeY);
     longestPathHighlightMaze.roomColors[endPoints[0]] = "#ff4444";
     longestPathHighlightMaze.roomColors[endPoints[1]] = "#ff4444";
   }
@@ -417,7 +417,7 @@
   });
   function updateDoorsPerRoomHighlightMaze() {
     if (doorsPerRoomHighlightIndex != null) {
-      doorsPerRoomHighlightMaze = new (maze.constructor)(maze.sizeX, maze.sizeY);
+      doorsPerRoomHighlightMaze = new Maze(maze.topology, maze.sizeX, maze.sizeY);
       doorsPerRoom[doorsPerRoomHighlightIndex].values.forEach(function(i) {
         doorsPerRoomHighlightMaze.roomColors[i] = "#ff4444";
       });
@@ -442,7 +442,7 @@
   });
   function updateWallsPerVertexHighlightMaze() {
     if (wallsPerVertexHighlightIndex != null) {
-      wallsPerVertexHighlightMaze = new (maze.constructor)(maze.sizeX, maze.sizeY);
+      wallsPerVertexHighlightMaze = new Maze(maze.topology, maze.sizeX, maze.sizeY);
       wallsPerVertex[wallsPerVertexHighlightIndex].values.forEach(function(i) {
         wallsPerVertexHighlightMaze.vertexColors[i] = "#ff4444";
       });
@@ -536,7 +536,7 @@
       mouseHotspotsHighlightMaze = null;
       return;
     }
-    mouseHotspotsHighlightMaze = new (maze.constructor)(maze.sizeX, maze.sizeY);
+    mouseHotspotsHighlightMaze = new Maze(maze.topology, maze.sizeX, maze.sizeY);
     var CLICK_ME_COLOR = "#dddd00";
     generatorOptions.values.forEach(function(value) {
       switch (generatorOptions.type) {
