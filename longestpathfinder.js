@@ -3,7 +3,7 @@ LongestPathFinder.CANDIDATE_PATH = "#aaaaff";
 LongestPathFinder.FAILURE = "#888888";
 function LongestPathFinder(maze) {
   this.maze = maze;
-  this.roomHighlightMaze = new (maze.constructor)(maze.sizeX, maze.sizeY);
+  this.roomHighlightMaze = new Maze(maze.topology, maze.sizeX, maze.sizeY);
 
   this.traversals = [];
   var roomCount = maze.getRoomCount();

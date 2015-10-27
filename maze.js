@@ -307,85 +307,246 @@ Maze.prototype.edgeToRoomPair = function(edge) {
 };
 
 Maze.prototype.getVertexCount = function() {
-  return (this.sizeX - 1) * (this.sizeY - 1);
+  switch (this.topology) {
+    case Maze.TOPOLOGY_RECTANGLE: return (this.sizeX - 1) * (this.sizeY - 1);
+    case Maze.TOPOLOGY_OUTDOOR:   return (this.sizeX + 1) * (this.sizeY + 1);
+    case Maze.TOPOLOGY_CYLINDER:  return (this.sizeX    ) * (this.sizeY - 1);
+    case Maze.TOPOLOGY_TORUS:     return (this.sizeX    ) * (this.sizeY    );
+    case Maze.TOPOLOGY_MOBIUS:    return (this.sizeX    ) * (this.sizeY - 1);
+    default: throw Error();
+  }
 };
 Maze.prototype.getVertexLocation = function(vertex) {
-  var x = Math.floor(vertex / (this.sizeY - 1));
-  var y = vertex % (this.sizeY - 1);
-  return {x:x, y:y};
+  switch (this.topology) {
+    case Maze.TOPOLOGY_RECTANGLE:
+    case Maze.TOPOLOGY_CYLINDER:
+    case Maze.TOPOLOGY_MOBIUS:
+      var x = Math.floor(vertex / (this.sizeY - 1));
+      var y = vertex % (this.sizeY - 1);
+      return {x:x, y:y};
+    case Maze.TOPOLOGY_OUTDOOR:
+      var x = Math.floor(vertex / (this.sizeY + 1)) - 1;
+      var y = vertex % (this.sizeY + 1) - 1;
+      return {x:x, y:y};
+    case Maze.TOPOLOGY_TORUS:
+      var x = Math.floor(vertex / this.sizeY);
+      var y = vertex % this.sizeY;
+      return {x:x, y:y};
+    default: throw Error();
+  }
 };
 Maze.prototype.getVertexFromLocation = function(x, y) {
-  return (this.sizeY - 1) * x + y;
+  switch (this.topology) {
+    case Maze.TOPOLOGY_RECTANGLE:
+      return (this.sizeY - 1) * x + y;
+    case Maze.TOPOLOGY_OUTDOOR:
+      return (this.sizeY + 1) * (x + 1) + (y + 1);
+    case Maze.TOPOLOGY_CYLINDER:
+      x = util.euclideanMod(x, this.sizeX);
+      return (this.sizeY - 1) * x + y;
+    case Maze.TOPOLOGY_TORUS:
+      x = util.euclideanMod(x, this.sizeX);
+      y = util.euclideanMod(y, this.sizeY);
+      return this.sizeY * x + y;
+    case Maze.TOPOLOGY_MOBIUS:
+      x = util.euclideanMod(x, this.sizeX * 2);
+      if (x >= this.sizeX) {
+        // invert
+        x -= this.sizeX;
+        y = (this.sizeY - 1) - 1 - y;
+      }
+      return (this.sizeY - 1) * x + y;
+    default: throw Error();
+  }
 };
 Maze.prototype.vertexToEdges = function(vertex) {
-  var vertexLocation = this.getVertexLocation(vertex);
-  var x = vertexLocation.x;
-  var y = vertexLocation.y;
-  return [
-    this.getEdgeFromLocation(Maze.VERTICAL, x, y),
-    this.getEdgeFromLocation(Maze.VERTICAL, x, y + 1),
-    this.getEdgeFromLocation(Maze.HORIZONTAL, x, y),
-    this.getEdgeFromLocation(Maze.HORIZONTAL, x + 1, y),
-  ];
+  switch (this.topology) {
+    case Maze.TOPOLOGY_RECTANGLE:
+    case Maze.TOPOLOGY_CYLINDER:
+    case Maze.TOPOLOGY_TORUS:
+    case Maze.TOPOLOGY_MOBIUS:
+      var vertexLocation = this.getVertexLocation(vertex);
+      var x = vertexLocation.x;
+      var y = vertexLocation.y;
+      return [
+        this.getEdgeFromLocation(Maze.VERTICAL, x, y),
+        this.getEdgeFromLocation(Maze.VERTICAL, x, y + 1),
+        this.getEdgeFromLocation(Maze.HORIZONTAL, x, y),
+        this.getEdgeFromLocation(Maze.HORIZONTAL, x + 1, y),
+      ];
+    case Maze.TOPOLOGY_OUTDOOR:
+      // TODO: can't we do this for all of them?
+      return this.vertexToBranches(vertex).map(function(branch) { return branch.edge; });
+    default: throw Error();
+  }
 };
 Maze.prototype.vertexToBranches = function(vertex) {
   var vertexLocation = this.getVertexLocation(vertex);
   var x = vertexLocation.x;
   var y = vertexLocation.y;
-  var branches = [];
-  if (x < this.sizeX - 2) {
-    branches.push({
-      vertex:this.getVertexFromLocation(x + 1, y),
-      edge:this.getEdgeFromLocation(Maze.HORIZONTAL, x + 1, y),
-    });
+  switch (this.topology) {
+    case Maze.TOPOLOGY_RECTANGLE:
+      var branches = [];
+      if (x < this.sizeX - 2) {
+        branches.push({
+          vertex:this.getVertexFromLocation(x + 1, y),
+          edge:this.getEdgeFromLocation(Maze.HORIZONTAL, x + 1, y),
+        });
+      }
+      if (x > 0) {
+        branches.push({
+          vertex:this.getVertexFromLocation(x - 1, y),
+          edge:this.getEdgeFromLocation(Maze.HORIZONTAL, x, y),
+        });
+      }
+      if (y < this.sizeY - 2) {
+        branches.push({
+          vertex:this.getVertexFromLocation(x, y + 1),
+          edge:this.getEdgeFromLocation(Maze.VERTICAL, x, y + 1),
+        });
+      }
+      if (y > 0) {
+        branches.push({
+          vertex:this.getVertexFromLocation(x, y - 1),
+          edge:this.getEdgeFromLocation(Maze.VERTICAL, x, y),
+        });
+      }
+      return branches;
+    case Maze.TOPOLOGY_OUTDOOR:
+      var branches = [];
+      if (x < this.sizeX - 1) {
+        branches.push({
+          vertex:this.getVertexFromLocation(x + 1, y),
+          edge:this.getEdgeFromLocation(Maze.HORIZONTAL, x + 1, y),
+        });
+      }
+      if (x > -1) {
+        branches.push({
+          vertex:this.getVertexFromLocation(x - 1, y),
+          edge:this.getEdgeFromLocation(Maze.HORIZONTAL, x, y),
+        });
+      }
+      if (y < this.sizeY - 1) {
+        branches.push({
+          vertex:this.getVertexFromLocation(x, y + 1),
+          edge:this.getEdgeFromLocation(Maze.VERTICAL, x, y + 1),
+        });
+      }
+      if (y > -1) {
+        branches.push({
+          vertex:this.getVertexFromLocation(x, y - 1),
+          edge:this.getEdgeFromLocation(Maze.VERTICAL, x, y),
+        });
+      }
+      return branches;
+    case Maze.TOPOLOGY_CYLINDER:
+      var branches = [
+        // these are certain
+        { vertex:this.getVertexFromLocation(             x + 1, y    ),
+          edge:this.getEdgeFromLocation(Maze.HORIZONTAL, x + 1, y    ) },
+        { vertex:this.getVertexFromLocation(             x - 1, y    ),
+          edge:this.getEdgeFromLocation(Maze.HORIZONTAL, x - 0, y    ) },
+      ];
+      if (y < this.sizeY - 2) {
+        branches.push({
+          vertex:this.getVertexFromLocation(x, y + 1),
+          edge:this.getEdgeFromLocation(Maze.VERTICAL, x, y + 1),
+        });
+      }
+      if (y > 0) {
+        branches.push({
+          vertex:this.getVertexFromLocation(x, y - 1),
+          edge:this.getEdgeFromLocation(Maze.VERTICAL, x, y),
+        });
+      }
+      return branches;
+    case Maze.TOPOLOGY_TORUS:
+      var branches = [
+        { vertex:this.getVertexFromLocation(             x + 1, y    ),
+          edge:this.getEdgeFromLocation(Maze.HORIZONTAL, x + 1, y    ) },
+        { vertex:this.getVertexFromLocation(             x - 1, y    ),
+          edge:this.getEdgeFromLocation(Maze.HORIZONTAL, x - 0, y    ) },
+        { vertex:this.getVertexFromLocation(             x    , y + 1),
+          edge:this.getEdgeFromLocation(Maze.VERTICAL,   x    , y + 1) },
+        { vertex:this.getVertexFromLocation(             x    , y - 1),
+          edge:this.getEdgeFromLocation(Maze.VERTICAL,   x    , y - 0) },
+      ];
+      return branches;
+    case Maze.TOPOLOGY_MOBIUS:
+      var branches = [
+        // these are certain
+        { vertex:this.getVertexFromLocation(             x + 1, y    ),
+          edge:this.getEdgeFromLocation(Maze.HORIZONTAL, x + 1, y    ) },
+        { vertex:this.getVertexFromLocation(             x - 1, y    ),
+          edge:this.getEdgeFromLocation(Maze.HORIZONTAL, x - 0, y    ) },
+      ];
+      if (y < this.sizeY - 2) {
+        branches.push({
+          vertex:this.getVertexFromLocation(x, y + 1),
+          edge:this.getEdgeFromLocation(Maze.VERTICAL, x, y + 1),
+        });
+      }
+      if (y > 0) {
+        branches.push({
+          vertex:this.getVertexFromLocation(x, y - 1),
+          edge:this.getEdgeFromLocation(Maze.VERTICAL, x, y),
+        });
+      }
+      return branches;
+    default: throw Error();
   }
-  if (x > 0) {
-    branches.push({
-      vertex:this.getVertexFromLocation(x - 1, y),
-      edge:this.getEdgeFromLocation(Maze.HORIZONTAL, x, y),
-    });
-  }
-  if (y < this.sizeY - 2) {
-    branches.push({
-      vertex:this.getVertexFromLocation(x, y + 1),
-      edge:this.getEdgeFromLocation(Maze.VERTICAL, x, y + 1),
-    });
-  }
-  if (y > 0) {
-    branches.push({
-      vertex:this.getVertexFromLocation(x, y - 1),
-      edge:this.getEdgeFromLocation(Maze.VERTICAL, x, y),
-    });
-  }
-  return branches;
 };
 Maze.prototype.getBorderBranches = function() {
-  var branches = [];
-  if (this.sizeY > 1) {
-    for (var x = 0; x < this.sizeX - 1; x++) {
-      branches.push({
-        vertex:this.getVertexFromLocation(x, 0),
-        edge:this.getEdgeFromLocation(Maze.VERTICAL, x, 0),
-      });
-      branches.push({
-        vertex:this.getVertexFromLocation(x, this.sizeY - 2),
-        edge:this.getEdgeFromLocation(Maze.VERTICAL, x, this.sizeY - 1),
-      });
-    }
+  switch (this.topology) {
+    case Maze.TOPOLOGY_RECTANGLE:
+      var branches = [];
+      if (this.sizeY > 1) {
+        for (var x = 0; x < this.sizeX - 1; x++) {
+          branches.push({
+            vertex:this.getVertexFromLocation(x, 0),
+            edge:this.getEdgeFromLocation(Maze.VERTICAL, x, 0),
+          });
+          branches.push({
+            vertex:this.getVertexFromLocation(x, this.sizeY - 2),
+            edge:this.getEdgeFromLocation(Maze.VERTICAL, x, this.sizeY - 1),
+          });
+        }
+      }
+      if (this.sizeX > 1) {
+        for (var y = 0; y < this.sizeY - 1; y++) {
+          branches.push({
+            vertex:this.getVertexFromLocation(0, y),
+            edge:this.getEdgeFromLocation(Maze.HORIZONTAL, 0, y),
+          });
+          branches.push({
+            vertex:this.getVertexFromLocation(this.sizeX - 2, y),
+            edge:this.getEdgeFromLocation(Maze.HORIZONTAL, this.sizeX - 1, y),
+          });
+        }
+      }
+      return branches;
+    case Maze.TOPOLOGY_OUTDOOR:
+    case Maze.TOPOLOGY_TORUS:
+      return [];
+    case Maze.TOPOLOGY_CYLINDER:
+    case Maze.TOPOLOGY_MOBIUS:
+      // only vertical branches from the border
+      var branches = [];
+      if (this.sizeY > 1) {
+        for (var x = 0; x < this.sizeX; x++) {
+          branches.push({
+            vertex:this.getVertexFromLocation(x, 0),
+            edge:this.getEdgeFromLocation(Maze.VERTICAL, x, 0),
+          });
+          branches.push({
+            vertex:this.getVertexFromLocation(x, this.sizeY - 2),
+            edge:this.getEdgeFromLocation(Maze.VERTICAL, x, this.sizeY - 1),
+          });
+        }
+      }
+      return branches;
+    default: throw Error();
   }
-  if (this.sizeX > 1) {
-    for (var y = 0; y < this.sizeY - 1; y++) {
-      branches.push({
-        vertex:this.getVertexFromLocation(0, y),
-        edge:this.getEdgeFromLocation(Maze.HORIZONTAL, 0, y),
-      });
-      branches.push({
-        vertex:this.getVertexFromLocation(this.sizeX - 2, y),
-        edge:this.getEdgeFromLocation(Maze.HORIZONTAL, this.sizeX - 1, y),
-      });
-    }
-  }
-  return branches;
 };
 
 Maze.prototype.shave = function() {
@@ -437,24 +598,13 @@ Maze.prototype.caveIn = function() {
 
 Maze.hexEncoding = "abcdefghijklmnop";
 Maze.prototype.getSerialization = function() {
-  var self = this;
-  var bitArray = self.edgeColors.map(function(edge) { return edge === Maze.FILLED ? 1 : 0; });
+  var bitArray = this.edgeColors.map(function(edge) { return edge === Maze.FILLED ? 1 : 0; });
   var nibbleAlignment = (bitArray.length + 3) & ~3;
   // pad
   for (var i = bitArray.length; i < nibbleAlignment; i++) {
     bitArray.push(0);
   }
-  var topologySerialization = (function() {
-    switch (self.constructor) {
-      case Maze: return "rectangle";
-      case OutdoorMaze: return "outdoor";
-      case CylinderMaze: return "cylinder";
-      case TorusMaze: return "torus";
-      case MobiusMaze: return "mobius";
-    }
-    throw new Error();
-  })();
-  var serialization = topologySerialization + "," + self.sizeX + "," + self.sizeY + ",";
+  var serialization = this.topology + "," + this.sizeX + "," + this.sizeY + ",";
   for (var i = 0; i < bitArray.length; i += 4) {
     var nibble = (bitArray[i+0] << 3) |
                  (bitArray[i+1] << 2) |
