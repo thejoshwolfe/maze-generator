@@ -648,12 +648,13 @@ Maze.fromSerialization = function(string) {
 };
 
 Maze.prototype.makeRenderer = function(canvas) {
-  return new MazeRenderer(canvas, this.sizeX, this.sizeY);
+  return new MazeRenderer(canvas, this.topology, this.sizeX, this.sizeY);
 };
 
 
-function MazeRenderer(canvas, sizeX, sizeY) {
+function MazeRenderer(canvas, topology, sizeX, sizeY) {
   this.canvas = canvas;
+  this.topology = topology;
   this.sizeX = sizeX;
   this.sizeY = sizeY;
   var cellSizeByZoom = 1000 / Math.max(sizeX, sizeY);
@@ -670,6 +671,27 @@ function MazeRenderer(canvas, sizeX, sizeY) {
   this.tessellationMaxY = 0;
   canvas.width = (sizeX + 1) * this.cellSize;
   canvas.height = (sizeY + 1) * this.cellSize;
+
+  switch (this.topology) {
+    case Maze.TOPOLOGY_RECTANGLE:
+    case Maze.TOPOLOGY_OUTDOOR:
+      break;
+    case Maze.TOPOLOGY_CYLINDER:
+      this.tessellationMinX = -1;
+      this.tessellationMaxX = 1;
+      break;
+    case Maze.TOPOLOGY_TORUS:
+      this.tessellationMinX = -1;
+      this.tessellationMaxX = 1;
+      this.tessellationMinY = -1;
+      this.tessellationMaxY = 1;
+      break;
+    case Maze.TOPOLOGY_MOBIUS:
+      this.tessellationMinX = -2;
+      this.tessellationMaxX = 2;
+      break;
+    default: throw Error();
+  }
 }
 
 MazeRenderer.prototype.render = function(maze, options) {
@@ -788,47 +810,159 @@ MazeRenderer.prototype.renderBorders = function(maze) {
   var wallThickness = self.wallThickness;
   var wallThicknessHalf = wallThickness / 2;
   context.fillStyle = Maze.FILLED;
-  // horizontal borders cover the corners
-  [cellSizeHalf, cellSizeHalf + self.sizeY * self.cellSize].forEach(function(y) {
-    context.fillRect(cellSizeHalf - wallThicknessHalf, y - wallThicknessHalf,
-                     self.sizeX * cellSize + wallThickness, wallThickness);
-  });
-  // vertical borders do not cover the corners
-  [cellSizeHalf, cellSizeHalf + self.sizeX * self.cellSize].forEach(function(x) {
-    context.fillRect(x - wallThicknessHalf, cellSizeHalf + wallThicknessHalf,
-                     wallThickness, self.sizeY * cellSize - wallThickness);
-  });
+  switch (this.topology) {
+    case Maze.TOPOLOGY_RECTANGLE:
+      // horizontal borders cover the corners
+      [cellSizeHalf, cellSizeHalf + self.sizeY * self.cellSize].forEach(function(y) {
+        context.fillRect(cellSizeHalf - wallThicknessHalf, y - wallThicknessHalf,
+                         self.sizeX * cellSize + wallThickness, wallThickness);
+      });
+      // vertical borders do not cover the corners
+      [cellSizeHalf, cellSizeHalf + self.sizeX * self.cellSize].forEach(function(x) {
+        context.fillRect(x - wallThicknessHalf, cellSizeHalf + wallThicknessHalf,
+                         wallThickness, self.sizeY * cellSize - wallThickness);
+      });
+      break;
+    case Maze.TOPOLOGY_OUTDOOR:
+    case Maze.TOPOLOGY_TORUS:
+      break;
+    case Maze.TOPOLOGY_CYLINDER:
+    case Maze.TOPOLOGY_MOBIUS:
+      [cellSizeHalf, cellSizeHalf + self.sizeY * self.cellSize].forEach(function(y) {
+        context.fillRect(0, y - wallThicknessHalf, self.canvas.width, wallThickness);
+      });
+      break;
+    default: throw Error();
+  }
 };
 
 MazeRenderer.prototype.scroll = function(deltaX, deltaY) {
-  // not supported
+  switch (this.topology) {
+    case Maze.TOPOLOGY_RECTANGLE:
+    case Maze.TOPOLOGY_OUTDOOR:
+      // not supported
+      break;
+    case Maze.TOPOLOGY_CYLINDER:
+      this.tessellationOffsetX = util.euclideanMod(this.tessellationOffsetX + deltaX, this.sizeX * this.cellSize);
+      break;
+    case Maze.TOPOLOGY_TORUS:
+      this.tessellationOffsetX = util.euclideanMod(this.tessellationOffsetX + deltaX, this.sizeX * this.cellSize);
+      this.tessellationOffsetY = util.euclideanMod(this.tessellationOffsetY + deltaY, this.sizeY * this.cellSize);
+      break;
+    case Maze.TOPOLOGY_MOBIUS:
+      this.tessellationOffsetX = util.euclideanMod(this.tessellationOffsetX + deltaX, this.sizeX * 2 * this.cellSize);
+      break;
+    default: throw Error();
+  }
 };
 
 MazeRenderer.prototype.getRoomLocationFromPixelLocation = function(mouseX, mouseY) {
-  var cellSizeHalf = this.cellSize / 2;
-  var x = Math.floor((mouseX - cellSizeHalf) / this.cellSize);
-  var y = Math.floor((mouseY - cellSizeHalf) / this.cellSize);
-  // have to bounds check here, because getRoomFromLocation won't
-  if (x < 0 || x >= this.sizeX) return null;
-  if (y < 0 || y >= this.sizeY) return null;
-  return {x:x, y:y};
+  switch (this.topology) {
+    case Maze.TOPOLOGY_RECTANGLE:
+      var cellSizeHalf = this.cellSize / 2;
+      var x = Math.floor((mouseX - cellSizeHalf) / this.cellSize);
+      var y = Math.floor((mouseY - cellSizeHalf) / this.cellSize);
+      // have to bounds check here, because getRoomFromLocation won't
+      if (x < 0 || x >= this.sizeX) return null;
+      if (y < 0 || y >= this.sizeY) return null;
+      return {x:x, y:y};
+    case Maze.TOPOLOGY_OUTDOOR:
+      var cellSizeHalf = this.cellSize / 2;
+      var x = Math.floor((mouseX - cellSizeHalf) / this.cellSize);
+      var y = Math.floor((mouseY - cellSizeHalf) / this.cellSize);
+      // don't bounds check here, because getRoomFromLocation will return the outdoor room.
+      return {x:x, y:y};
+    case Maze.TOPOLOGY_CYLINDER:
+      var x = Math.floor(util.euclideanMod(mouseX - this.tessellationOffsetX, this.sizeX * this.cellSize) / this.cellSize);
+      var y = Math.floor((mouseY - this.tessellationOffsetY) / this.cellSize);
+      if (y < 0 || y >= this.sizeY) return null;
+      return {x:x, y:y};
+    case Maze.TOPOLOGY_TORUS:
+      var x = Math.floor(util.euclideanMod(mouseX - this.tessellationOffsetX, this.sizeX * this.cellSize) / this.cellSize);
+      var y = Math.floor(util.euclideanMod(mouseY - this.tessellationOffsetY, this.sizeY * this.cellSize) / this.cellSize);
+      return {x:x, y:y};
+    case Maze.TOPOLOGY_MOBIUS:
+      var x = Math.floor(util.euclideanMod(mouseX - this.tessellationOffsetX, this.sizeX * 2 * this.cellSize) / this.cellSize);
+      var y = Math.floor((mouseY - this.tessellationOffsetY) / this.cellSize);
+      if (y < 0 || y >= this.sizeY) return null;
+      if (x >= this.sizeX) {
+        // invert
+        x -= this.sizeX;
+        y = this.sizeY - 1 - y;
+      }
+      return {x:x, y:y};
+    default: throw Error();
+  }
 };
 
 MazeRenderer.prototype.getTessellatedRoomLocation = function(x, y, tessellationIndexX, tessellationIndexY) {
-  return {
-    x: x + tessellationIndexX * this.sizeX,
-    y: y + tessellationIndexY * this.sizeY,
-  };
+  switch (this.topology) {
+    case Maze.TOPOLOGY_RECTANGLE:
+    case Maze.TOPOLOGY_OUTDOOR:
+    case Maze.TOPOLOGY_CYLINDER:
+    case Maze.TOPOLOGY_TORUS:
+      return {
+        x: x + tessellationIndexX * this.sizeX,
+        y: y + tessellationIndexY * this.sizeY,
+      };
+    case Maze.TOPOLOGY_MOBIUS:
+      if (util.euclideanMod(tessellationIndexX, 2) === 1) {
+        // invert
+        y = this.sizeY - 1 - y;
+      }
+      return {
+        x: x + tessellationIndexX * this.sizeX,
+        y: y + tessellationIndexY * this.sizeY,
+      };
+    default: throw Error();
+  }
 };
 MazeRenderer.prototype.getTessellatedEdgeLocation = function(x, y, orientation, tessellationIndexX, tessellationIndexY) {
-  return {
-    x: x + tessellationIndexX * this.sizeX,
-    y: y + tessellationIndexY * this.sizeY,
-  };
+  switch (this.topology) {
+    case Maze.TOPOLOGY_RECTANGLE:
+    case Maze.TOPOLOGY_OUTDOOR:
+    case Maze.TOPOLOGY_CYLINDER:
+    case Maze.TOPOLOGY_TORUS:
+      return {
+        x: x + tessellationIndexX * this.sizeX,
+        y: y + tessellationIndexY * this.sizeY,
+      };
+    case Maze.TOPOLOGY_MOBIUS:
+      if (util.euclideanMod(tessellationIndexX, 2) === 1) {
+        // invert
+        if (orientation === Maze.HORIZONTAL) {
+          y = (this.sizeY - 1) - 1 - y;
+        } else {
+          // vertical
+          y = this.sizeY - 1 - y;
+        }
+      }
+      return {
+        x: x + tessellationIndexX * this.sizeX,
+        y: y + tessellationIndexY * this.sizeY,
+      };
+    default: throw Error();
+  }
 };
 MazeRenderer.prototype.getTessellatedVertexLocation = function(x, y, tessellationIndexX, tessellationIndexY) {
-  return {
-    x: x + tessellationIndexX * this.sizeX,
-    y: y + tessellationIndexY * this.sizeY,
-  };
+  switch (this.topology) {
+    case Maze.TOPOLOGY_RECTANGLE:
+    case Maze.TOPOLOGY_OUTDOOR:
+    case Maze.TOPOLOGY_CYLINDER:
+    case Maze.TOPOLOGY_TORUS:
+      return {
+        x: x + tessellationIndexX * this.sizeX,
+        y: y + tessellationIndexY * this.sizeY,
+      };
+    case Maze.TOPOLOGY_MOBIUS:
+      if (util.euclideanMod(tessellationIndexX, 2) === 1) {
+        // invert
+        y = (this.sizeY - 1) - 1 - y;
+      }
+      return {
+        x: x + tessellationIndexX * this.sizeX,
+        y: y + tessellationIndexY * this.sizeY,
+      };
+    default: throw Error();
+  }
 };
