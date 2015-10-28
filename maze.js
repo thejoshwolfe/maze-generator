@@ -7,12 +7,49 @@ Maze.TOPOLOGY_OUTDOOR   = "outdoor";
 Maze.TOPOLOGY_CYLINDER  = "cylinder";
 Maze.TOPOLOGY_TORUS     = "torus";
 Maze.TOPOLOGY_MOBIUS    = "mobius";
+
+Maze.TOPOLOGY_WALL  = 0;
+Maze.TOPOLOGY_LOOP  = 1;
+Maze.TOPOLOGY_TWIST = 2;
+Maze.TOPOLOGY_OPEN  = 3;
+
 function Maze(topology, sizeX, sizeY, options) {
   if (options == null) options = {};
-  this.topology = topology;
+  this.topology = topology; // TODO: stop using this field
+  switch (this.topology) {
+    case Maze.TOPOLOGY_RECTANGLE:
+      this.topologyX = Maze.TOPOLOGY_WALL;
+      this.topologyY = Maze.TOPOLOGY_WALL;
+      break;
+    case Maze.TOPOLOGY_OUTDOOR:
+      this.topologyX = Maze.TOPOLOGY_OPEN;
+      this.topologyY = Maze.TOPOLOGY_OPEN;
+      break;
+    case Maze.TOPOLOGY_CYLINDER:
+      this.topologyX = Maze.TOPOLOGY_LOOP;
+      this.topologyY = Maze.TOPOLOGY_WALL;
+      break;
+    case Maze.TOPOLOGY_TORUS:
+      this.topologyX = Maze.TOPOLOGY_LOOP;
+      this.topologyY = Maze.TOPOLOGY_LOOP;
+      break;
+    case Maze.TOPOLOGY_MOBIUS:
+      this.topologyX = Maze.TOPOLOGY_TWIST;
+      this.topologyY = Maze.TOPOLOGY_WALL;
+      break;
+    default: throw Error();
+  }
   this.sizeX = sizeX;
   this.sizeY = sizeY;
-  if (this.topology === Maze.TOPOLOGY_OUTDOOR) this.outdoorRoom = sizeX * sizeY;
+  if (this.topologyX === Maze.TOPOLOGY_OPEN || this.topologyY === Maze.TOPOLOGY_OPEN) {
+    // something is open
+    if (this.topologyX === Maze.TOPOLOGY_OPEN && this.topologyY === Maze.TOPOLOGY_OPEN) {
+      // both are open
+      this.outdoorRoom = sizeX * sizeY;
+    } else {
+      throw Error("TODO: support partial outdoors"); // TODO
+    }
+  }
   var initialEdgeColor = options.initialEdgeColor || Maze.OPEN;
   var initialRoomColor = options.initialRoomColor || Maze.OPEN;
   var initialVertexColor = options.initialVertexColor || Maze.OPEN;
@@ -37,14 +74,10 @@ function Maze(topology, sizeX, sizeY, options) {
 };
 
 Maze.prototype.getEdgeCount = function() {
-  switch (this.topology) {
-    case Maze.TOPOLOGY_RECTANGLE: return this.sizeX * (this.sizeY - 1) + (this.sizeX - 1) * this.sizeY;
-    case Maze.TOPOLOGY_OUTDOOR:   return this.sizeX * (this.sizeY + 1) + (this.sizeX + 1) * this.sizeY;
-    case Maze.TOPOLOGY_CYLINDER:  return this.sizeX * (this.sizeY - 1) +  this.sizeX      * this.sizeY;
-    case Maze.TOPOLOGY_TORUS:     return this.sizeX *  this.sizeY      +  this.sizeX      * this.sizeY;
-    case Maze.TOPOLOGY_MOBIUS:    return this.sizeX * (this.sizeY - 1) +  this.sizeX      * this.sizeY;
-    default: throw Error();
-  }
+  return (
+    this.sizeX * (this.sizeY + Maze.getEdgeCountAdjustment(this.topologyY)) +
+    this.sizeY * (this.sizeX + Maze.getEdgeCountAdjustment(this.topologyX))
+  );
 };
 Maze.prototype.getEdgeFromLocation = function(orientation, x, y) {
   switch (this.topology) {
@@ -651,6 +684,15 @@ Maze.prototype.makeRenderer = function(canvas) {
   return new MazeRenderer(canvas, this.topology, this.sizeX, this.sizeY);
 };
 
+Maze.getEdgeCountAdjustment = function(topology) {
+  switch (topology) {
+    case Maze.TOPOLOGY_WALL:  return -1;
+    case Maze.TOPOLOGY_LOOP:  return  0;
+    case Maze.TOPOLOGY_TWIST: return  0;
+    case Maze.TOPOLOGY_OPEN:  return  1;
+    default: throw Error();
+  }
+};
 
 function MazeRenderer(canvas, topology, sizeX, sizeY) {
   this.canvas = canvas;
