@@ -119,15 +119,14 @@ Maze.prototype.getEdgeFromLocation = function(orientation, x, y) {
       // TODO: open topology off-by-1 locations
       x += 1;
     }
-    var verticalEdgeMajorSize = this.sizeY;
     if (this.topologyX === Maze.TOPOLOGY_TWIST) {
       if (x >= this.sizeX) {
         // invert
         x -= this.sizeX;
-        y = verticalEdgeMajorSize - 1 - y;
+        y = this.sizeY - 1 - y;
       }
     }
-    return this.getHorizontalEdgeCount() + x * verticalEdgeMajorSize + y;
+    return this.getHorizontalEdgeCount() + x * this.sizeY + y;
   }
 };
 Maze.prototype.getHorizontalEdgeCount = function() {
@@ -161,50 +160,52 @@ Maze.prototype.getEdgeLocation = function(edge) {
 };
 
 Maze.prototype.getRoomCount = function() {
-  switch (this.topology) {
-    case Maze.TOPOLOGY_RECTANGLE: return this.sizeX * this.sizeY;
-    case Maze.TOPOLOGY_OUTDOOR:   return this.sizeX * this.sizeY + 1;
-    case Maze.TOPOLOGY_CYLINDER:  return this.sizeX * this.sizeY;
-    case Maze.TOPOLOGY_TORUS:     return this.sizeX * this.sizeY;
-    case Maze.TOPOLOGY_MOBIUS:    return this.sizeX * this.sizeY;
-    default: throw Error();
+  if (this.topologyX === Maze.TOPOLOGY_OPEN || this.topologyY === Maze.TOPOLOGY_OPEN) {
+    // something is open
+    if (this.topologyX === Maze.TOPOLOGY_OPEN && this.topologyY === Maze.TOPOLOGY_OPEN) {
+      // both are open
+      return this.sizeX * this.sizeY + 1;
+    } else {
+      throw Error("TODO: support partial outdoors"); // TODO
+    }
   }
+  return this.sizeX * this.sizeY;
 };
 Maze.prototype.getRoomFromLocation = function(x, y) {
-  switch (this.topology) {
-    case Maze.TOPOLOGY_RECTANGLE: break;
-    case Maze.TOPOLOGY_OUTDOOR:
-      // out of bounds is outdoors
+  x = Maze.modForTopology(x, this.sizeX, this.topologyX);
+  y = Maze.modForTopology(y, this.sizeY, this.topologyY);
+  if (this.topologyX === Maze.TOPOLOGY_OPEN || this.topologyY === Maze.TOPOLOGY_OPEN) {
+    // something is open
+    if (this.topologyX === Maze.TOPOLOGY_OPEN && this.topologyY === Maze.TOPOLOGY_OPEN) {
+      // both are open
       if (x < 0 || x >= this.sizeX ||
           y < 0 || y >= this.sizeY) {
+        // out of bounds is outdoors
         return this.outdoorRoom;
       }
-      break;
-    case Maze.TOPOLOGY_CYLINDER:  x = util.euclideanMod(x, this.sizeX);                                       break;
-    case Maze.TOPOLOGY_TORUS:     x = util.euclideanMod(x, this.sizeX); y = util.euclideanMod(y, this.sizeY); break;
-    case Maze.TOPOLOGY_MOBIUS:
-      x = util.euclideanMod(x, this.sizeX * 2);
-      if (x >= this.sizeX) {
-        // invert
-        x -= this.sizeX;
-        y = this.sizeY - 1 - y;
-      }
-      break;
-    default: throw Error();
+    } else {
+      throw Error("TODO: support partial outdoors"); // TODO
+    }
+  }
+  if (this.topologyX === Maze.TOPOLOGY_TWIST) {
+    if (x >= this.sizeX) {
+      // invert
+      x -= this.sizeX;
+      y = this.sizeY - 1 - y;
+    }
   }
   return this.sizeY * x + y;
 };
 Maze.prototype.getRoomLocation = function(room) {
-  switch (this.topology) {
-    case Maze.TOPOLOGY_RECTANGLE: break;
-    case Maze.TOPOLOGY_OUTDOOR:
+  if (this.topologyX === Maze.TOPOLOGY_OPEN || this.topologyY === Maze.TOPOLOGY_OPEN) {
+    // something is open
+    if (this.topologyX === Maze.TOPOLOGY_OPEN && this.topologyY === Maze.TOPOLOGY_OPEN) {
+      // both are open
       // the official "location" of the outdoors room is where you'd expect it's upper-left corner.
       if (room === this.outdoorRoom) return {x:-1, y:-1};
-      break;
-    case Maze.TOPOLOGY_CYLINDER:  break;
-    case Maze.TOPOLOGY_TORUS:     break;
-    case Maze.TOPOLOGY_MOBIUS:    break;
-    default: throw Error();
+    } else {
+      throw Error("TODO: support partial outdoors"); // TODO
+    }
   }
   var x = Math.floor(room / this.sizeY);
   var y = room % this.sizeY;
