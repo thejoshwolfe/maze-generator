@@ -9,9 +9,9 @@ Maze.TOPOLOGY_TORUS     = "torus";
 Maze.TOPOLOGY_MOBIUS    = "mobius";
 
 Maze.TOPOLOGY_WALL  = 0;
-Maze.TOPOLOGY_LOOP  = 1;
-Maze.TOPOLOGY_TWIST = 2;
-Maze.TOPOLOGY_OPEN  = 3;
+Maze.TOPOLOGY_OPEN  = 1;
+Maze.TOPOLOGY_LOOP  = 2;
+Maze.TOPOLOGY_TWIST = 3;
 
 function Maze(topology, sizeX, sizeY, options) {
   if (options == null) options = {};
@@ -80,55 +80,55 @@ Maze.prototype.getEdgeCount = function() {
   );
 };
 Maze.prototype.getEdgeFromLocation = function(orientation, x, y) {
-  switch (this.topology) {
-    case Maze.TOPOLOGY_RECTANGLE:                                                                                 break;
-    case Maze.TOPOLOGY_OUTDOOR:                                                                                   break;
-    case Maze.TOPOLOGY_CYLINDER:  x = util.euclideanMod(x, this.sizeX);                                           break;
-    case Maze.TOPOLOGY_TORUS:     x = util.euclideanMod(x, this.sizeX);     y = util.euclideanMod(y, this.sizeY); break;
-    case Maze.TOPOLOGY_MOBIUS:    x = util.euclideanMod(x, this.sizeX * 2);                                       break;
-    default: throw Error();
-  }
+  x = Maze.modForTopology(x, this.sizeX, this.topologyX);
+  y = Maze.modForTopology(y, this.sizeY, this.topologyY);
+  var horizontalEdgeMajorSize = this.sizeY + Maze.getEdgeCountAdjustment(this.topologyY);
   if (orientation === Maze.HORIZONTAL) {
     // horizontal
-    switch (this.topology) {
-      case Maze.TOPOLOGY_RECTANGLE: return x * (this.sizeY - 1) + y;
-      case Maze.TOPOLOGY_OUTDOOR:   return x * (this.sizeY + 1) + y + 1;
-      case Maze.TOPOLOGY_CYLINDER:  return x * (this.sizeY - 1) + y;
-      case Maze.TOPOLOGY_TORUS:     return x * this.sizeY + y;
-      case Maze.TOPOLOGY_MOBIUS:
-        if (x >= this.sizeX) {
-          // invert
-          x -= this.sizeX;
-          y = (this.sizeY - 1) - 1 - y;
-        }
-        return x * (this.sizeY - 1) + y;
-      default: throw Error();
+    // +-+-+-+
+    // | | | |
+    // +0+3+6+ \
+    // | | | |  |
+    // +1+4+7+  | horizontalEdgeMajorSize = 3
+    // | | | |  |
+    // +2+5+8+ /
+    // | | | |
+    // +-+-+-+
+    if (this.topologyY === Maze.TOPOLOGY_OPEN) {
+      // TODO: open topology off-by-1 locations
+      y += 1;
     }
+    if (this.topologyX === Maze.TOPOLOGY_TWIST) {
+      if (x >= this.sizeX) {
+        // invert
+        x -= this.sizeX;
+        y = horizontalEdgeMajorSize - 1 - y;
+      }
+    }
+    return x * horizontalEdgeMajorSize + y;
   } else {
     // vertical
-    switch (this.topology) {
-      case Maze.TOPOLOGY_RECTANGLE:
-        var horizontalEdgeCount = this.sizeX * (this.sizeY - 1);
-        return horizontalEdgeCount + x * this.sizeY + y;
-      case Maze.TOPOLOGY_OUTDOOR:
-        var horizontalEdgeCount = this.sizeX * (this.sizeY + 1);
-        return horizontalEdgeCount + (x + 1) * this.sizeY + y;
-      case Maze.TOPOLOGY_CYLINDER:
-        var horizontalEdgeCount = this.sizeX * (this.sizeY - 1);
-        return horizontalEdgeCount + x * this.sizeY + y;
-      case Maze.TOPOLOGY_TORUS:
-        var horizontalEdgeCount = this.sizeX * this.sizeY;
-        return horizontalEdgeCount + x * this.sizeY + y;
-      case Maze.TOPOLOGY_MOBIUS:
-        if (x >= this.sizeX) {
-          // invert
-          x -= this.sizeX;
-          y = this.sizeY - 1 - y;
-        }
-        var horizontalEdgeCount = this.sizeX * (this.sizeY - 1);
-        return horizontalEdgeCount + x * this.sizeY + y;
-      default: throw Error();
+    // +-+-+-+-+
+    // | 0 3 6 |
+    // +-+-+-+-+
+    // | 1 4 7 |
+    // +-+-+-+-+
+    // | 2 5 8 |
+    // +-+-+-+-+
+    var horizontalEdgeCount = this.sizeX * horizontalEdgeMajorSize;
+    if (this.topologyX === Maze.TOPOLOGY_OPEN) {
+      // TODO: open topology off-by-1 locations
+      x += 1;
     }
+    var verticalEdgeMajorSize = this.sizeY;
+    if (this.topologyX === Maze.TOPOLOGY_TWIST) {
+      if (x >= this.sizeX) {
+        // invert
+        x -= this.sizeX;
+        y = verticalEdgeMajorSize - 1 - y;
+      }
+    }
+    return horizontalEdgeCount + x * verticalEdgeMajorSize + y;
   }
 };
 Maze.prototype.getEdgeLocation = function(edge) {
@@ -683,9 +683,18 @@ Maze.fromSerialization = function(string) {
 Maze.getEdgeCountAdjustment = function(topology) {
   switch (topology) {
     case Maze.TOPOLOGY_WALL:  return -1;
+    case Maze.TOPOLOGY_OPEN:  return  1;
     case Maze.TOPOLOGY_LOOP:  return  0;
     case Maze.TOPOLOGY_TWIST: return  0;
-    case Maze.TOPOLOGY_OPEN:  return  1;
+    default: throw Error();
+  }
+};
+Maze.modForTopology = function(x, sizeX, topologyX) {
+  switch (topologyX) {
+    case Maze.TOPOLOGY_WALL:  return x;
+    case Maze.TOPOLOGY_OPEN:  return x;
+    case Maze.TOPOLOGY_LOOP:  return util.euclideanMod(x, sizeX);
+    case Maze.TOPOLOGY_TWIST: return util.euclideanMod(x, sizeX * 2);
     default: throw Error();
   }
 };
