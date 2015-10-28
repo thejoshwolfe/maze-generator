@@ -82,7 +82,6 @@ Maze.prototype.getEdgeCount = function() {
 Maze.prototype.getEdgeFromLocation = function(orientation, x, y) {
   x = Maze.modForTopology(x, this.sizeX, this.topologyX);
   y = Maze.modForTopology(y, this.sizeY, this.topologyY);
-  var horizontalEdgeMajorSize = this.sizeY + Maze.getEdgeCountAdjustment(this.topologyY);
   if (orientation === Maze.HORIZONTAL) {
     // horizontal
     // +-+-+-+
@@ -94,6 +93,7 @@ Maze.prototype.getEdgeFromLocation = function(orientation, x, y) {
     // +2+5+8+ /
     // | | | |
     // +-+-+-+
+    var horizontalEdgeMajorSize = this.sizeY + Maze.getEdgeCountAdjustment(this.topologyY);
     if (this.topologyY === Maze.TOPOLOGY_OPEN) {
       // TODO: open topology off-by-1 locations
       y += 1;
@@ -115,7 +115,6 @@ Maze.prototype.getEdgeFromLocation = function(orientation, x, y) {
     // +-+-+-+-+
     // | 2 5 8 |
     // +-+-+-+-+
-    var horizontalEdgeCount = this.sizeX * horizontalEdgeMajorSize;
     if (this.topologyX === Maze.TOPOLOGY_OPEN) {
       // TODO: open topology off-by-1 locations
       x += 1;
@@ -128,42 +127,34 @@ Maze.prototype.getEdgeFromLocation = function(orientation, x, y) {
         y = verticalEdgeMajorSize - 1 - y;
       }
     }
-    return horizontalEdgeCount + x * verticalEdgeMajorSize + y;
+    return this.getHorizontalEdgeCount() + x * verticalEdgeMajorSize + y;
   }
+};
+Maze.prototype.getHorizontalEdgeCount = function() {
+  return this.sizeX * (this.sizeY + Maze.getEdgeCountAdjustment(this.topologyY));
 };
 Maze.prototype.getEdgeLocation = function(edge) {
   var orientation;
   var x;
   var y;
-  var horizontalEdgeCount;
-  switch (this.topology) {
-    case Maze.TOPOLOGY_RECTANGLE: horizontalEdgeCount = this.sizeX * (this.sizeY - 1); break;
-    case Maze.TOPOLOGY_OUTDOOR:   horizontalEdgeCount = this.sizeX * (this.sizeY + 1); break;
-    case Maze.TOPOLOGY_CYLINDER:  horizontalEdgeCount = this.sizeX * (this.sizeY - 1); break;
-    case Maze.TOPOLOGY_TORUS:     horizontalEdgeCount = this.sizeX * (this.sizeY    ); break;
-    case Maze.TOPOLOGY_MOBIUS:    horizontalEdgeCount = this.sizeX * (this.sizeY - 1); break;
-    default: throw Error();
-  }
+  var horizontalEdgeCount = this.getHorizontalEdgeCount();
+  var horizontalEdgeMajorSize = this.sizeY + Maze.getEdgeCountAdjustment(this.topologyY);
   if (edge < horizontalEdgeCount) {
     orientation = Maze.HORIZONTAL;
-    switch (this.topology) {
-      case Maze.TOPOLOGY_RECTANGLE: x = Math.floor(edge / (this.sizeY - 1)); y = edge % (this.sizeY - 1);     break;
-      case Maze.TOPOLOGY_OUTDOOR:   x = Math.floor(edge / (this.sizeY + 1)); y = edge % (this.sizeY + 1) - 1; break;
-      case Maze.TOPOLOGY_CYLINDER:  x = Math.floor(edge / (this.sizeY - 1)); y = edge % (this.sizeY - 1);     break;
-      case Maze.TOPOLOGY_TORUS:     x = Math.floor(edge / (this.sizeY    )); y = edge % (this.sizeY    );     break;
-      case Maze.TOPOLOGY_MOBIUS:    x = Math.floor(edge / (this.sizeY - 1)); y = edge % (this.sizeY - 1);     break;
-      default: throw Error();
+    x = Math.floor(edge / horizontalEdgeMajorSize);
+    y = edge % horizontalEdgeMajorSize;
+    if (this.topologyY === Maze.TOPOLOGY_OPEN) {
+      // TODO: open topology off-by-1 locations
+      y -= 1;
     }
   } else {
     edge -= horizontalEdgeCount;
     orientation = Maze.VERTICAL;
-    switch (this.topology) {
-      case Maze.TOPOLOGY_RECTANGLE: x = Math.floor(edge / this.sizeY);     y = edge % this.sizeY; break;
-      case Maze.TOPOLOGY_OUTDOOR:   x = Math.floor(edge / this.sizeY) - 1; y = edge % this.sizeY; break;
-      case Maze.TOPOLOGY_CYLINDER:  x = Math.floor(edge / this.sizeY);     y = edge % this.sizeY; break;
-      case Maze.TOPOLOGY_TORUS:     x = Math.floor(edge / this.sizeY);     y = edge % this.sizeY; break;
-      case Maze.TOPOLOGY_MOBIUS:    x = Math.floor(edge / this.sizeY);     y = edge % this.sizeY; break;
-      default: throw Error();
+    x = Math.floor(edge / this.sizeY);
+    y = edge % this.sizeY;
+    if (this.topologyX === Maze.TOPOLOGY_OPEN) {
+      // TODO: open topology off-by-1 locations
+      x -= 1;
     }
   }
   return {orientation:orientation, x:x, y:y};
