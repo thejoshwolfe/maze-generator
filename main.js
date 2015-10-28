@@ -138,7 +138,7 @@
 
     experimentalMode = null;
 
-    mazeRenderer = maze.makeRenderer(mazeCanvas);
+    mazeRenderer = new MazeRenderer(mazeCanvas, maze.topology, maze.sizeX, maze.sizeY);
     refreshDisplay();
   }
 
