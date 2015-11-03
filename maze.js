@@ -332,57 +332,45 @@ Maze.prototype.edgeToRoomPair = function(edge) {
 };
 
 Maze.prototype.getVertexCount = function() {
-  switch (this.topology) {
-    case Maze.TOPOLOGY_RECTANGLE: return (this.sizeX - 1) * (this.sizeY - 1);
-    case Maze.TOPOLOGY_OUTDOOR:   return (this.sizeX + 1) * (this.sizeY + 1);
-    case Maze.TOPOLOGY_CYLINDER:  return (this.sizeX    ) * (this.sizeY - 1);
-    case Maze.TOPOLOGY_TORUS:     return (this.sizeX    ) * (this.sizeY    );
-    case Maze.TOPOLOGY_MOBIUS:    return (this.sizeX    ) * (this.sizeY - 1);
-    default: throw Error();
-  }
+  return (
+    (this.sizeX + Maze.getEdgeCountAdjustment(this.topologyX)) *
+    (this.sizeY + Maze.getEdgeCountAdjustment(this.topologyY))
+  );
 };
 Maze.prototype.getVertexLocation = function(vertex) {
-  switch (this.topology) {
-    case Maze.TOPOLOGY_RECTANGLE:
-    case Maze.TOPOLOGY_CYLINDER:
-    case Maze.TOPOLOGY_MOBIUS:
-      var x = Math.floor(vertex / (this.sizeY - 1));
-      var y = vertex % (this.sizeY - 1);
-      return {x:x, y:y};
-    case Maze.TOPOLOGY_OUTDOOR:
-      var x = Math.floor(vertex / (this.sizeY + 1)) - 1;
-      var y = vertex % (this.sizeY + 1) - 1;
-      return {x:x, y:y};
-    case Maze.TOPOLOGY_TORUS:
-      var x = Math.floor(vertex / this.sizeY);
-      var y = vertex % this.sizeY;
-      return {x:x, y:y};
-    default: throw Error();
+  var majorSize = this.sizeY + Maze.getEdgeCountAdjustment(this.topologyY);
+  var x = Math.floor(vertex / majorSize);
+  var y = vertex % majorSize;
+  if (this.topologyX === Maze.TOPOLOGY_OPEN) {
+    // TODO: open topology off-by-1 locations
+    x -= 1;
   }
+  if (this.topologyY === Maze.TOPOLOGY_OPEN) {
+    // TODO: open topology off-by-1 locations
+    y -= 1;
+  }
+  return {x:x, y:y};
 };
 Maze.prototype.getVertexFromLocation = function(x, y) {
-  switch (this.topology) {
-    case Maze.TOPOLOGY_RECTANGLE:
-      return (this.sizeY - 1) * x + y;
-    case Maze.TOPOLOGY_OUTDOOR:
-      return (this.sizeY + 1) * (x + 1) + (y + 1);
-    case Maze.TOPOLOGY_CYLINDER:
-      x = util.euclideanMod(x, this.sizeX);
-      return (this.sizeY - 1) * x + y;
-    case Maze.TOPOLOGY_TORUS:
-      x = util.euclideanMod(x, this.sizeX);
-      y = util.euclideanMod(y, this.sizeY);
-      return this.sizeY * x + y;
-    case Maze.TOPOLOGY_MOBIUS:
-      x = util.euclideanMod(x, this.sizeX * 2);
-      if (x >= this.sizeX) {
-        // invert
-        x -= this.sizeX;
-        y = (this.sizeY - 1) - 1 - y;
-      }
-      return (this.sizeY - 1) * x + y;
-    default: throw Error();
+  var majorSize = this.sizeY + Maze.getEdgeCountAdjustment(this.topologyY);
+  x = Maze.modForTopology(x, this.sizeX, this.topologyX);
+  y = Maze.modForTopology(y, this.sizeY, this.topologyY);
+  if (this.topologyX === Maze.TOPOLOGY_OPEN) {
+    // TODO: open topology off-by-1 locations
+    x += 1;
   }
+  if (this.topologyY === Maze.TOPOLOGY_OPEN) {
+    // TODO: open topology off-by-1 locations
+    y += 1;
+  }
+  if (this.topologyX === Maze.TOPOLOGY_TWIST) {
+    if (x >= this.sizeX) {
+      // invert
+      x -= this.sizeX;
+      y = this.sizeY + Maze.getEdgeCountAdjustment(this.topologyY) - 1 - y;
+    }
+  }
+  return majorSize * x + y;
 };
 Maze.prototype.vertexToEdges = function(vertex) {
   switch (this.topology) {
