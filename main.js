@@ -480,8 +480,7 @@
   }
   function renderMaze() {
     var context = mazeCanvas.getContext("2d");
-    context.fillStyle = "#ffffff";
-    context.fillRect(0, 0, mazeCanvas.width, mazeCanvas.height);
+    context.clearRect(0, 0, mazeCanvas.width, mazeCanvas.height);
     if (longestPathHighlightMaze != null) {
       mazeRenderer.render(longestPathHighlightMaze);
     }
